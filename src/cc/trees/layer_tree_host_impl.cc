@@ -160,6 +160,12 @@
 #include "ui/gfx/skia_span_util.h"
 #include "ui/latency/latency_info.h"
 
+#if defined(USE_NEVA_APPRUNTIME)
+#include "base/command_line.h"
+#include "base/strings/string_number_conversions.h"
+#include "cc/base/switches_neva.h"
+#endif  // defined(USE_NEVA_APPRUNTIME)
+
 namespace cc {
 namespace {
 
@@ -705,6 +711,10 @@ LayerTreeHostImpl::LayerTreeHostImpl(
       dark_mode_filter_(dark_mode_filter),
       rendering_stats_instrumentation_(rendering_stats_instrumentation),
       micro_benchmark_controller_(this),
+#if defined(USE_NEVA_APPRUNTIME)
+      memory_pressure_level_(
+          base::MEMORY_PRESSURE_LEVEL_NONE),
+#endif  // defined(USE_NEVA_APPRUNTIME)
       task_graph_runner_(task_graph_runner),
       id_(id),
       consecutive_frame_with_damage_count_(settings.damaged_frame_limit),
@@ -786,6 +796,26 @@ LayerTreeHostImpl::LayerTreeHostImpl(
       this, settings.top_controls_show_threshold,
       settings.top_controls_hide_threshold,
       settings.trees_in_viz_in_viz_process);
+
+#if defined(USE_NEVA_APPRUNTIME)
+  // NEVA: drive the low-end tile memory policy from memory pressure. M151
+  // dropped its own listener here, but base::MemoryPressureListener remains.
+  memory_pressure_listener_registration_.emplace(
+      base::MemoryPressureListenerTag::kLayerTreeHostImpl, this);
+
+  base::CommandLine& cmd_line = *base::CommandLine::ForCurrentProcess();
+  if (cmd_line.HasSwitch(
+          switches::kTileManagerLowMemPolicyBytesLimitReductionFactor)) {
+    size_t bytes_limit_reduction_factor;
+    if (base::StringToSizeT(
+            cmd_line.GetSwitchValueASCII(
+                switches::kTileManagerLowMemPolicyBytesLimitReductionFactor),
+            &bytes_limit_reduction_factor)) {
+      bytes_limit_reduction_factor_ = bytes_limit_reduction_factor;
+    }
+  }
+#endif  // defined(USE_NEVA_APPRUNTIME)
+
 
   SetDebugState(settings.initial_debug_state);
   compositor_frame_reporting_controller_->SetFrameSorter(&frame_sorter_);
@@ -1932,6 +1962,12 @@ void LayerTreeHostImpl::UpdateTileManagerMemoryPolicy(
         (static_cast<int64_t>(global_tile_state_.hard_memory_limit_in_bytes) *
          settings_.max_memory_for_prepaint_percentage) /
         100;
+#if defined(USE_NEVA_APPRUNTIME)
+    if (memory_pressure_level_ !=
+        base::MEMORY_PRESSURE_LEVEL_NONE) {
+      global_tile_state_.soft_memory_limit_in_bytes = 0;
+    }
+#endif  // defined(USE_NEVA_APPRUNTIME)
   }
   global_tile_state_.memory_limit_policy =
       ManagedMemoryPolicy::PriorityCutoffToTileMemoryLimitPolicy(
@@ -2172,6 +2208,13 @@ void LayerTreeHostImpl::NotifyAllTileTasksCompleted() {
     if (image_decode_cache_holder_) {
       image_decode_cache_holder_->SetShouldAggressivelyFreeResources(true);
     }
+
+#if defined(USE_NEVA_APPRUNTIME)
+    if (resource_pool_ && settings_.use_aggressive_release_policy) {
+      resource_pool_->InvalidateResources();
+    }
+#endif
+
     SetContextVisibility(false);
   }
 }
@@ -2385,6 +2428,14 @@ void LayerTreeHostImpl::MaybeFlushPendingWork() {
     return;
   }
   compositor_context->ContextSupport()->FlushPendingWork();
+#if defined(USE_NEVA_APPRUNTIME)
+  // NOTE(neva): memory optimization
+  // It needs to force flush gpu channel host to free up the gpu memory.
+  // M151 removed SharedImageInterface::Flush(); VerifyFlush() is the remaining
+  // synchronous round trip that pushes pending work to the service.
+  auto* sii = compositor_context->SharedImageInterface();
+  sii->VerifyFlush();
+#endif
 }
 
 void LayerTreeHostImpl::OnDraw(const gfx::Transform& transform,
@@ -3331,6 +3382,13 @@ viz::CompositorFrame LayerTreeHostImpl::GenerateCompositorFrame(
 
   metadata.activation_dependencies = std::move(frame->activation_dependencies);
   active_tree()->FinishSwapPromises(&metadata);
+
+#if defined(USE_NEVA_APPRUNTIME)
+  metadata.seen_first_contentful_paint = seen_first_contentful_paint_;
+  if (metadata.is_first_contentful_paint)
+    seen_first_contentful_paint_ = true;
+#endif
+
   // The swap-promises should not change the frame-token.
   DCHECK_EQ(metadata.frame_token, next_frame_token());
 
@@ -4096,6 +4154,56 @@ void LayerTreeHostImpl::ActivateStateForImages() {
   tile_manager_.DidActivateSyncTree();
 }
 
+void LayerTreeHostImpl::OnMemoryPressure(
+    base::MemoryPressureLevel level) {
+#if defined(USE_NEVA_APPRUNTIME)
+  memory_pressure_level_ = level;
+#endif  // defined(USE_NEVA_APPRUNTIME)
+
+#if defined(OS_WEBOS)
+  if (level == base::MEMORY_PRESSURE_LEVEL_NONE) {
+    if (visible_)
+      UpdateTileManagerMemoryPolicy(ActualManagedMemoryPolicy());
+    return;
+  }
+#else
+  // Only work for low-end devices for now.
+  if (!base::SysInfo::IsLowEndDevice())
+    return;
+
+  // Only a critical signal warrants evicting caches (M120's
+  // ImageDecodeCacheUtils::ShouldEvictCaches(), removed upstream).
+  if (level != base::MEMORY_PRESSURE_LEVEL_CRITICAL)
+    return;
+#endif  // defined(OS_WEBOS)
+
+  // TODO(crbug.com/1189208): Unlocking decoded-image-tracker images causes
+  // flickering in visible trees if Out-Of-Process rasterization is enabled.
+#if BUILDFLAG(IS_FUCHSIA)
+  if (use_gpu_rasterization() && visible())
+    return;
+#endif  // BUILDFLAG(IS_FUCHSIA)
+
+  ReleaseTileResources();
+  active_tree_->OnPurgeMemory();
+  if (pending_tree_)
+    pending_tree_->OnPurgeMemory();
+  if (recycle_tree_)
+    recycle_tree_->OnPurgeMemory();
+
+  EvictAllUIResources();
+
+  tile_manager_.decoded_image_tracker().UnlockAllImages();
+
+#if defined(USE_NEVA_APPRUNTIME)
+  if (visible_) {
+    UpdateTileManagerMemoryPolicy(ActualManagedMemoryPolicy());
+    SetFullViewportDamage();
+    SetNeedsRedraw(/*animation_only=*/false, /*skip_if_inside_draw=*/false);
+  }
+#endif  // defined(USE_NEVA_APPRUNTIME)
+}
+
 void LayerTreeHostImpl::SetVisible(bool visible) {
   DCHECK(task_runner_provider_->IsImplThread());
 
@@ -4122,7 +4230,14 @@ void LayerTreeHostImpl::SetVisible(bool visible) {
   DidVisibilityChange(this, visible_);
 
   if (!settings_.trees_in_viz_in_viz_process) {
-    UpdateTileManagerMemoryPolicy(ActualManagedMemoryPolicy());
+#if defined(USE_NEVA_APPRUNTIME)
+    if (!visible && settings_.use_aggressive_release_policy) {
+      UpdateTileManagerMemoryPolicy(ManagedMemoryPolicy(0));
+    } else  // NOLINT(readability/braces)
+#endif
+    {
+      UpdateTileManagerMemoryPolicy(ActualManagedMemoryPolicy());
+    }
   }
 
   // If we just became visible, we have to ensure that we draw high res tiles,
@@ -4141,7 +4256,14 @@ void LayerTreeHostImpl::SetVisible(bool visible) {
       SetNeedsRedraw(/*animation_only=*/false, /*skip_if_inside_draw=*/false);
     }
   } else if (!settings_.trees_in_viz_in_viz_process) {
-    EvictAllUIResources();
+#if defined(USE_NEVA_APPRUNTIME)
+    if (settings_.use_aggressive_release_policy) {
+      ReleaseTreeResources();
+    } else  // NOLINT(readability/braces)
+#endif
+    {
+      EvictAllUIResources();
+    }
     // Call PrepareTiles to evict tiles when we become invisible.
     PrepareTiles();
     tile_manager_.decoded_image_tracker().UnlockAllImages();
@@ -4194,6 +4316,13 @@ ManagedMemoryPolicy LayerTreeHostImpl::ActualManagedMemoryPolicy() const {
     actual.priority_cutoff_when_visible =
         gpu::MemoryAllocation::CUTOFF_ALLOW_NICE_TO_HAVE;
   }
+#if defined(USE_NEVA_APPRUNTIME)
+  if (memory_pressure_level_ !=
+          base::MEMORY_PRESSURE_LEVEL_NONE &&
+      bytes_limit_reduction_factor_ > 1) {
+    actual.bytes_limit_when_visible /= bytes_limit_reduction_factor_;
+  }
+#endif  // defined(USE_NEVA_APPRUNTIME)
   return actual;
 }
 
