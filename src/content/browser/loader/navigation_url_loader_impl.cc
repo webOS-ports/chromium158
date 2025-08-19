@@ -46,6 +46,7 @@
 #include "content/browser/renderer_host/frame_tree_node.h"
 #include "content/browser/renderer_host/navigation_request.h"
 #include "content/browser/renderer_host/navigation_request_info.h"
+#include "content/browser/renderer_host/render_frame_host_delegate.h"
 #include "content/browser/service_worker/service_worker_client.h"
 #include "content/browser/service_worker/service_worker_main_resource_handle.h"
 #include "content/browser/service_worker/service_worker_main_resource_loader_interceptor.h"
@@ -133,6 +134,10 @@
 
 #if BUILDFLAG(ENABLE_PLUGINS)
 #include "content/public/browser/plugin_service.h"
+#endif
+
+#if defined(USE_NEVA_APPRUNTIME)
+#include "content/browser/renderer_host/frame_tree.h"
 #endif
 
 namespace content {
@@ -266,6 +271,29 @@ std::unique_ptr<network::ResourceRequest> CreateResourceRequest(
       std::move(devtools_observer), /*priority=*/net::HIGHEST,
       request_info.is_main_frame);
 
+#if defined(USE_NEVA_APPRUNTIME)
+  // The navigation URL reaches ServiceWorkerClient::UpdateUrls() and is used for
+  // the storage key when calling RegisterServiceWorker; the storage key origin
+  // is in turn bound to the origin the service worker sees from the permission
+  // service. So tag the request URL with the webapp_id here.
+  //
+  // Call path down to the storage key:
+  //   ServiceWorkerClient::UpdateUrls
+  //   ServiceWorkerControlleeRequestHandler::MaybeCreateLoader
+  //   ServiceWorkerMainResourceLoaderInterceptor::MaybeCreateLoader
+  //   NavigationURLLoaderImpl::{Start,StartImpl,Restart,MaybeStartLoader}
+  //
+  // M151 moved the request setup into CreateResourceRequestForNavigation(),
+  // which already populated `url` and pushed it onto the redirect chain, so fix
+  // up both to keep them consistent.
+  if (frame_tree_node && frame_tree_node->current_frame_host()) {
+    new_request->url.set_webapp_id(
+        frame_tree_node->current_frame_host()->GetWebAppId());
+    if (!new_request->navigation_redirect_chain.empty()) {
+      new_request->navigation_redirect_chain.back() = new_request->url;
+    }
+  }
+#endif
   new_request->trusted_params->cookie_observer = std::move(cookie_observer);
   new_request->trusted_params->trust_token_observer =
       std::move(trust_token_observer);
@@ -381,9 +409,24 @@ std::unique_ptr<network::ResourceRequest> CreateResourceRequest(
 // Called for terminal requests that complete immediately with a network error.
 void CompleteWithNetErrorCallback(
     net::Error net_error,
+#if defined(USE_NEVA_APPRUNTIME)
+    const network::ResourceRequest& request,
+#else
     const network::ResourceRequest& /* resource_request */,
+#endif
     mojo::PendingReceiver<network::mojom::URLLoader> /* receiver */,
     mojo::PendingRemote<network::mojom::URLLoaderClient> client) {
+
+#if defined(USE_NEVA_APPRUNTIME)
+  if (request.url == url::kIllegalDataURL) {
+    mojo::Remote<network::mojom::URLLoaderClient>(std::move(client))
+        ->OnComplete(
+            network::URLLoaderCompletionStatus(net::ERR_BLOCKED_BY_CLIENT));
+
+    return;
+  }
+#endif
+
   mojo::Remote<network::mojom::URLLoaderClient>(std::move(client))
       ->OnComplete(network::URLLoaderCompletionStatus(net_error));
 }
@@ -1091,6 +1134,7 @@ network::mojom::URLLoaderClientEndpointsPtr
 NavigationURLLoaderImpl::LoaderHolder::Unbind() {
   CheckState();
 
+
   if (url_loader_) {
     // TODO(https://crbug.com/434182226): Turn this to `CHECK()`.
     DUMP_WILL_BE_CHECK_EQ(state_, State::kLoadingViaLoader);
@@ -1363,6 +1407,26 @@ void NavigationURLLoaderImpl::CreateThrottlingLoaderAndStart(
 
   uint32_t options =
       GetURLLoaderOptions(resource_request().is_outermost_main_frame);
+
+#if defined(USE_NEVA_APPRUNTIME)
+  // Honour the per-app third-party cookie policy from WebPreferences. M151
+  // reworked the non-intercepted request path into LoaderHolder, so this now
+  // hangs off the surviving GetURLLoaderOptions() call rather than
+  // PrepareForNonInterceptedRequest().
+  if (FrameTreeNode* neva_frame_tree_node =
+          FrameTreeNode::GloballyFindByID(frame_tree_node_id_)) {
+    if (RenderFrameHostDelegate* rfhd =
+            neva_frame_tree_node->frame_tree().render_frame_delegate()) {
+      const auto policy =
+          rfhd->GetOrCreateWebPreferences().third_party_cookies_policy;
+      if (policy == blink::mojom::ThirdPartyCookiesPolicy::kDeny) {
+        options |= network::mojom::kURLLoadOptionBlockThirdPartyCookies;
+      } else if (policy == blink::mojom::ThirdPartyCookiesPolicy::kAllow) {
+        options &= ~network::mojom::kURLLoadOptionBlockThirdPartyCookies;
+      }
+    }
+  }
+#endif
 
   loader_holder_.SetLoader(blink::ThrottlingURLLoader::CreateLoader(
       std::move(throttles), /*client=*/this,

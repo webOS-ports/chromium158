@@ -240,6 +240,18 @@ void RenderFrameHostImpl::SetUpMojoConnection() {
           },
           base::Unretained(this)));
 
+#if defined(USE_NEVA_MEDIA)
+  associated_registry_->AddInterface<content::mojom::FrameVideoWindowFactory>(
+      base::BindRepeating(
+          [](RenderFrameHostImpl* impl,
+             mojo::PendingAssociatedReceiver<
+                 content::mojom::FrameVideoWindowFactory> receiver) {
+            impl->frame_video_window_factory_receiver_.Bind(
+                std::move(receiver));
+          },
+          base::Unretained(this)));
+#endif  // defined(USE_NEVA_MEDIA)
+
   if (is_main_frame()) {
     associated_registry_->AddInterface<blink::mojom::LocalMainFrameHost>(
         base::BindRepeating(

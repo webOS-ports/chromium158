@@ -842,6 +842,10 @@ void DevToolsHttpHandler::OnWebSocketRequest(
   if (!thread_)
     return;
 
+// TODO(neva): The below check on allowed origins causes DevTools disconnection.
+// Needs to be revised later.
+// See http://clm.lge.com/issue/browse/NEVA-7987 for details.
+#if !defined(USE_NEVA_APPRUNTIME)
   bool is_same_origin =
       server_ip_address_ &&
       url::Origin::Create(
@@ -862,6 +866,7 @@ void DevToolsHttpHandler::OnWebSocketRequest(
     LOG(ERROR) << message;
     return;
   }
+#endif  // !defined(USE_NEVA_APPRUNTIME)
 
   // If we require user approval, we do not require guid.
   if (mode_ ==

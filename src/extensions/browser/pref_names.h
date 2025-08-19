@@ -197,6 +197,10 @@ inline constexpr char kHasDismissedEnterprisePromotion[] =
 // policies.
 inline constexpr char kWasPinnedByDefault[] = "was_pinned_by_default";
 
+#if defined(USE_NEVA_APPRUNTIME)
+extern const char kPrefPdfJsEnableScripting[];
+#endif
+
 }  // namespace pref_names
 }  // namespace extensions
 

@@ -135,6 +135,10 @@ void SetRuntimeFeaturesFromChromiumFeatures() {
       blink_feature_to_base_feature_mapping[] = {
           {wf::EnableAccessibilityUseAXPositionForDocumentMarkers,
            features::kUseAXPositionForDocumentMarkers},
+#if defined(USE_FILESCHEME_CODECACHE)
+          {wf::EnableLocalResourceCodeCache,
+           blink::features::kLocalResourceCodeCache},
+#endif
           {wf::EnableBackgroundFetch, features::kBackgroundFetch},
           {wf::EnableBoundaryEventDispatchTracksNodeRemoval,
            blink::features::kBoundaryEventDispatchTracksNodeRemoval},

@@ -212,4 +212,11 @@ gfx::PointF RenderWidgetHostDelegate::GetCurrentTouchSequenceOffset() {
 }
 #endif
 
+#if defined(USE_NEVA_APPRUNTIME)
+bool RenderWidgetHostDelegate::IsPinchToZoomEnabled() const {
+  return true;
+}
+#endif
+
+
 }  // namespace content

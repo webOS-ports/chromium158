@@ -102,6 +102,10 @@
 #include "content/public/browser/android/child_process_importance.h"
 #endif
 
+#if defined(USE_NEVA_APPRUNTIME)
+#include "base/memory/memory_pressure_listener.h"
+#endif  // defined(USE_NEVA_APPRUNTIME)
+
 #if BUILDFLAG(ENABLE_OOP_VIDEO_DECODER)
 #include "media/mojo/mojom/interface_factory.mojom.h"
 #endif  // BUILDFLAG(ENABLE_OOP_VIDEO_DECODER)
@@ -114,6 +118,10 @@
 #include "content/browser/child_thread_type_switcher_linux.h"
 #include "media/mojo/mojom/video_encode_accelerator.mojom.h"
 #endif
+
+#if defined(ENABLE_PWA_MANAGER_WEBAPI)
+#include "neva/app_runtime/public/mojom/installable_manager.mojom.h"
+#endif  // defined(ENABLE_PWA_MANAGER_WEBAPI)
 
 namespace base {
 class CommandLine;
@@ -1135,6 +1143,10 @@ class CONTENT_EXPORT RenderProcessHostImpl
   void BindVideoEncoderMetricsProvider(
       mojo::PendingReceiver<media::mojom::VideoEncoderMetricsProvider>
           receiver);
+#if defined(ENABLE_PWA_MANAGER_WEBAPI)
+  void BindInstallableManager(
+      mojo::PendingReceiver<neva_app_runtime::mojom::InstallableManager> receiver);
+#endif  // defined(ENABLE_PWA_MANAGER_WEBAPI)
   void BindAecDumpManager(
       mojo::PendingReceiver<blink::mojom::AecDumpManager> receiver);
   void CreateMediaLogRecordHost(
@@ -1660,6 +1672,9 @@ class CONTENT_EXPORT RenderProcessHostImpl
   // delayed to run unload handlers, or zero if the process shutdown was not
   // delayed due to unload handlers.
   base::TimeDelta time_spent_running_unload_handlers_;
+
+#if defined(USE_NEVA_APPRUNTIME)
+#endif  // defined(USE_NEVA_APPRUNTIME)
 
   // If the RenderProcessHost is being shutdown via Shutdown(), this records the
   // exit code.

@@ -43,6 +43,11 @@
 #include "third_party/blink/public/web/web_local_frame.h"
 #include "third_party/blink/public/web/web_local_frame_client.h"
 
+#if defined(USE_WEBOS_AUDIO)
+#include "content/renderer/render_frame_impl.h"
+#include "media/audio/audio_device_description.h"
+#endif
+
 using blink::AudioDeviceFactory;
 using blink::WebAudioLatencyHint;
 using blink::WebAudioSinkDescriptor;
@@ -530,13 +535,35 @@ void RendererWebAudioDeviceImpl::CreateAudioRendererSink() {
   CHECK(!sink_);
 
   switch (sink_descriptor_.Type()) {
-    case blink::WebAudioSinkDescriptor::kAudible:
-      sink_ = AudioDeviceFactory::GetInstance()->NewAudioRendererSink(
-          GetLatencyHintSourceType(latency_hint_.Category()),
-          sink_descriptor_.Token(),
-          media::AudioSinkParameters(base::UnguessableToken(),
-                                     sink_descriptor_.SinkId().Utf8()));
+    case blink::WebAudioSinkDescriptor::kAudible: {
+#if defined(USE_WEBOS_AUDIO)
+      std::string device_id;
+
+      WebLocalFrame* web_frame = blink::WebLocalFrame::FrameForCurrentContext();
+      if (web_frame) {
+        auto* render_frame = RenderFrameImpl::FromWebFrame(web_frame);
+        if (render_frame) {
+          device_id = media::AudioDeviceDescription::GetDisplayDefaultDevice(
+              render_frame->GetRendererPreferences().display_id);
+          VLOG(1) << __func__ << " defult device_id=[" << device_id << "]";
+        }
+      }
+
+      if (!device_id.empty()) {
+        sink_ = AudioDeviceFactory::GetInstance()->NewAudioRendererSink(
+            GetLatencyHintSourceType(latency_hint_.Category()),
+            sink_descriptor_.Token(),
+            media::AudioSinkParameters(base::UnguessableToken(), device_id));
+
+      } else
+#endif  // USE_WEBOS_AUDIO
+        sink_ = AudioDeviceFactory::GetInstance()->NewAudioRendererSink(
+            GetLatencyHintSourceType(latency_hint_.Category()),
+            sink_descriptor_.Token(),
+            media::AudioSinkParameters(base::UnguessableToken(),
+                                       sink_descriptor_.SinkId().Utf8()));
       break;
+    }
     case blink::WebAudioSinkDescriptor::kSilent:
       sink_ = create_silent_sink_cb_.Run(GetSilentSinkTaskRunner());
       break;

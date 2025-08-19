@@ -8,6 +8,7 @@ import("//content/public/common/zygote/features.gni")
 import("//ipc/features.gni")
 import("//media/media_options.gni")
 import("//mojo/public/tools/bindings/mojom.gni")
+import("//neva/neva.gni")
 import("//sandbox/features.gni")
 import("//services/network/public/cpp/features.gni")
 import("//testing/libfuzzer/fuzzer_test.gni")
@@ -435,6 +436,11 @@ group("for_content_tests") {
 mojom("mojo_bindings") {
   # This interface is internal to content.
   visibility = [ "//content/*" ]
+
+  if (use_neva_appruntime) {
+    visibility += [ "//neva/app_runtime" ]
+  }
+
   sources = [
     "agent_scheduling_group.mojom",
     "associated_interfaces.mojom",
@@ -627,6 +633,10 @@ mojom("mojo_bindings") {
       "//ui/base/cursor/mojom",
       "//ui/display/mojom",
     ]
+  }
+
+  if (use_neva_media) {
+    sources += [ "media/neva/frame_media_controller.mojom" ]
   }
 
   overridden_deps = [ "//third_party/blink/public/mojom:mojom_core" ]

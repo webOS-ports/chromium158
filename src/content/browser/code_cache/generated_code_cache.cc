@@ -39,6 +39,16 @@ using storage::BigIOBuffer;
 
 namespace content {
 
+#if defined(USE_FILESCHEME_CODECACHE)
+namespace neva {
+bool IsFileSchemeSupportedForCodeCache(const GURL& url) {
+  return base::FeatureList::IsEnabled(
+             blink::features::kLocalResourceCodeCache) &&
+         url.SchemeIsFile();
+}
+}  // namespace neva
+#endif
+
 namespace {
 
 constexpr char kSeparator[] = " \n";
@@ -60,6 +70,9 @@ void CheckValidResource(const GURL& resource_url,
       resource_url.SchemeIs(content::kChromeUIUntrustedScheme);
   CHECK(resource_url.SchemeIsHTTPOrHTTPS() ||
             resource_url_is_chrome_or_chrome_untrusted ||
+#if defined(USE_FILESCHEME_CODECACHE)
+            content::neva::IsFileSchemeSupportedForCodeCache(resource_url) ||
+#endif
             blink::CommonSchemeRegistry::IsCodeCacheAllowedScheme(
                 resource_url.GetScheme()),
         base::NotFatalUntil::M159);
@@ -88,6 +101,9 @@ void CheckValidContext(const GURL& origin_lock,
   CHECK(origin_lock.is_empty() ||
             ((origin_lock.SchemeIsHTTPOrHTTPS() ||
               origin_lock_is_chrome_or_chrome_untrusted ||
+#if defined(USE_FILESCHEME_CODECACHE)
+              content::neva::IsFileSchemeSupportedForCodeCache(origin_lock) ||
+#endif
               blink::CommonSchemeRegistry::IsCodeCacheAllowedScheme(
                   origin_lock.GetScheme())) &&
              !url::Origin::Create(origin_lock).opaque()),
