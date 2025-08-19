@@ -17,6 +17,7 @@
 #include "ui/gl/gl_display.h"
 #include "ui/gl/gl_export.h"
 #include "ui/gl/gl_implementation.h"
+#include "components/viz/common/gpu/gpu_vsync_callback.h"
 #include "ui/gl/gl_surface_format.h"
 
 #if BUILDFLAG(IS_OZONE)
@@ -210,6 +211,8 @@ class GL_EXPORT GLSurface : public base::RefCounted<GLSurface> {
   base::WeakPtr<GLSurface> AsWeakPtr();
 
   static bool ExtensionsContain(const char* extensions, const char* name);
+
+  virtual void SetVSyncCallback(viz::GpuVSyncCallback callback) {}
 
  protected:
   virtual ~GLSurface();

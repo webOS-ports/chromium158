@@ -458,6 +458,10 @@ component("events") {
       "//third_party/fuchsia-sdk/sdk/fidl/fuchsia.ui.pointer:fuchsia.ui.pointer_cpp",
     ]
   }
+
+  if (use_neva_appruntime) {
+    deps += [ "//ui/events/keycodes/neva" ]
+  }
 }
 
 component("keyboard_hook") {

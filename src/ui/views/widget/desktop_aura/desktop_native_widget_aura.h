@@ -54,6 +54,10 @@ class DesktopEventClient;
 class DesktopNativeCursorManager;
 class DesktopWindowTreeHost;
 class FocusManagerEventHandler;
+#if defined(USE_NEVA_APPRUNTIME)
+// Added for Neva, required for GetNativeEventDelegate.
+class NativeEventDelegate;
+#endif
 class TooltipManagerAura;
 namespace legacy {
 class WindowReorderer;
@@ -120,6 +124,11 @@ class VIEWS_EXPORT DesktopNativeWidgetAura
 
   // Overridden from internal::NativeWidgetPrivate:
   gfx::NativeWindow GetNativeWindow() const override;
+
+#if defined(USE_NEVA_APPRUNTIME)
+  // Getter for Neva NativeEventDelegate.
+  virtual NativeEventDelegate* GetNativeEventDelegate() const;
+#endif
 
   // Configures the appropriate aura::Windows based on the
   // DesktopWindowTreeHost's transparency.

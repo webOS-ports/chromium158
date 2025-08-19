@@ -12,6 +12,11 @@ namespace ui {
 
 
 int GetFourCCFormatFromSharedImageFormat(const viz::SharedImageFormat& format) {
+#if defined(OS_WEBOS)
+  // NEVA: webOS does not use GBM/DRM buffers, so no format mapping is
+  // needed here.
+  return 0;
+#else
   if (format == viz::SinglePlaneFormat::kR_8) {
     return DRM_FORMAT_R8;
   }
@@ -62,6 +67,7 @@ int GetFourCCFormatFromSharedImageFormat(const viz::SharedImageFormat& format) {
   }
   // Other formats are not supported.
   return DRM_FORMAT_INVALID;
+#endif  // defined(OS_WEBOS)
 }
 
 viz::SharedImageFormat GetSharedImageFormatFromFourCCFormat(int format) {
@@ -98,6 +104,9 @@ viz::SharedImageFormat GetSharedImageFormatFromFourCCFormat(int format) {
 }
 
 bool IsValidDrmFormat(uint32_t current_format) {
+#if defined(OS_WEBOS)
+  return false;
+#else
   switch (current_format) {
     case DRM_FORMAT_ABGR8888:
     case DRM_FORMAT_XBGR8888:
@@ -114,6 +123,7 @@ bool IsValidDrmFormat(uint32_t current_format) {
     default:
       return false;
   }
+#endif  // defined(OS_WEBOS)
 }
 
 const char* DrmFormatToString(uint32_t format) {
