@@ -830,7 +830,8 @@ void CorsURLLoader::OnReceiveResponse(
                         header_names::kAccessControlAllowCredentials),
         request_.credentials_mode,
         tainted_ ? url::Origin() : *request_.request_initiator,
-        neva::CorsCorbException::ShouldAllowExceptionForProcess(process_id_) ||
+        neva::CorsCorbException::ShouldAllowExceptionForProcess(
+            process_id_.GetUnsafeValue()) ||
             neva::CorsCorbException::ShouldAllowExceptionForURL(request_.url));
     if (!result.has_value()) {
       HandleComplete(URLLoaderCompletionStatus(result.error()));
@@ -968,7 +969,8 @@ void CorsURLLoader::OnReceiveRedirect(const net::RedirectInfo& redirect_info,
                         header_names::kAccessControlAllowCredentials),
         request_.credentials_mode,
         tainted_ ? url::Origin() : *request_.request_initiator,
-        neva::CorsCorbException::ShouldAllowExceptionForProcess(process_id_) ||
+        neva::CorsCorbException::ShouldAllowExceptionForProcess(
+            process_id_.GetUnsafeValue()) ||
             neva::CorsCorbException::ShouldAllowExceptionForURL(request_.url));
     if (!result.has_value()) {
       HandleComplete(URLLoaderCompletionStatus(result.error()));
@@ -1317,7 +1319,9 @@ void CorsURLLoader::StartPreflightCheck() {
           network_loader_factory_, isolation_info_,
           weak_devtools_observer_factory_.GetWeakPtr(), net_log_,
           context_->acam_preflight_spec_conformant(),
-          std::move(remote_observer), process_id_);
+          std::move(remote_observer),
+          // M151 wrapped the raw id in network::OriginatingProcessId.
+          process_id_.GetUnsafeValue());
   // On a cache hit, `PerformPreflightCheck()` synchronously runs
   // `OnPreflightRequestComplete()` (which can destroy `this`), so
   // `preflight_check_handle_` must only be assigned when `handle` is non-null.

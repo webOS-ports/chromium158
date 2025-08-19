@@ -36,6 +36,9 @@ chromium-metrics-reviews@google.com.
   <variant name="Affiliation" summary="Affiliation"/>
   <variant name="AnnotationStorage" summary="AnnotationStorage"/>
   <variant name="ArcContentUrlDatabase" summary="ArcContentUrlDatabase"/>
+  <variant name="NevaLocalStorageTracker" summary="NevaLocalStorageTracker"/>
+  <variant name="NevaUrlDatabase" summary="NevaUrlDatabase"/>
+  <variant name="NevaWebRiskDatabase" summary="NevaWebRiskDatabase"/>
   <variant name="BackgroundRequestQueue" summary="BackgroundRequestQueue"/>
   <variant name="BrowsingTopics" summary="BrowsingTopics"/>
   <variant name="CdmStorage" summary="CdmStorage"/>
