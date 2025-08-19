@@ -36,6 +36,12 @@ def filter_clang_args(clangargs):
         while i < len(args):
             arg = args[i]
 
+            # Filter out ARM-specific flags that aren't supported on other
+            # architectures.
+            if arg.startswith('-mbranch-protection') or arg.startswith('-mfpu='):
+                i += 1
+                continue
+
             # Intercept plugin arguments:
             # -Xclang -add-plugin -Xclang <plugin_name>
             # -Xclang -plugin-arg-<plugin_name> -Xclang <arg>
