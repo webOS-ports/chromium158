@@ -17,6 +17,13 @@ namespace switches {
 // alongside the definition of their values in the .cc file.
 BLINK_COMMON_EXPORT extern const char kAllowPreCommitInput[];
 BLINK_COMMON_EXPORT extern const char kAsyncTouchMoveThrottleTimeMs[];
+#if defined(USE_NEVA_APPRUNTIME)
+BLINK_COMMON_EXPORT extern const char kAllowScriptsToCloseWindows[];
+BLINK_COMMON_EXPORT extern const char
+    kMaxTimeToPurgeAfterBackgroundedInSeconds[];
+BLINK_COMMON_EXPORT extern const char
+    kMinTimeToPurgeAfterBackgroundedInSeconds[];
+#endif  // defined(USE_NEVA_APPRUNTIME)
 BLINK_COMMON_EXPORT extern const char kBlinkSettings[];
 BLINK_COMMON_EXPORT extern const char kDarkModeSettings[];
 BLINK_COMMON_EXPORT extern const char kDataUrlInSvgUseEnabled[];

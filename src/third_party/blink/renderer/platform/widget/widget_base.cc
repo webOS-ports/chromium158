@@ -1373,6 +1373,13 @@ void WidgetBase::UpdateTextInputStateInternal(bool show_virtual_keyboard,
         return;
       }
     }
+
+#if defined(USE_NEVA_APPRUNTIME)
+    params->input_panel_rectangle = new_info.input_panel_rectangle;
+    params->bounds = new_info.bounds;
+    params->max_length = new_info.max_length;
+#endif  // defined(USE_NEVA_APPRUNTIME)
+
 #if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_IOS)
     if (next_previous_flags_ == kInvalidNextPreviousFlagsValue) {
       // Due to a focus change, values will be reset by the frame.

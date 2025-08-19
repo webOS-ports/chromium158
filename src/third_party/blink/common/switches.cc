@@ -17,6 +17,17 @@ const char kAllowPreCommitInput[] = "allow-pre-commit-input";
 const char kAsyncTouchMoveThrottleTimeMs[] =
     "async-touch-move-throttle-time-ms";
 
+#if defined(USE_NEVA_APPRUNTIME)
+// Allow script to close windows that was opened by another scripts
+const char kAllowScriptsToCloseWindows[] = "allow-scripts-to-close-windows";
+// Set min and max time of first purging after a renderer is backgrounded.
+// Given value will replace default time.
+const char kMaxTimeToPurgeAfterBackgroundedInSeconds[] =
+    "max-delay-to-purge-after-backgrounded-in-seconds";
+const char kMinTimeToPurgeAfterBackgroundedInSeconds[] =
+    "min-delay-to-purge-after-backgrounded-in-seconds";
+#endif  // defined(USE_NEVA_APPRUNTIME)
+
 // Set blink settings. Format is <name>[=<value],<name>[=<value>],...
 // The names are declared in Settings.json5. For boolean type, use "true",
 // "false", or omit '=<value>' part to set to true. For enum type, use the int

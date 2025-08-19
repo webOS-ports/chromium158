@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//neva/neva.gni")
 import("//third_party/blink/renderer/platform/platform.gni")
 
 blink_platform_sources("media") {
@@ -87,6 +88,12 @@ blink_platform_sources("media") {
     "//third_party/blink/renderer/platform:allow_discouraged_type",
     "//third_party/blink/renderer/platform/scheduler",
   ]
+  if (use_neva_media) {
+    import("//third_party/blink/renderer/platform/media/neva/build.gni")
+    deps += neva.deps
+    public_deps += neva.public_deps
+    sources += rebase_path(neva.sources, ".")
+  }
 }
 
 source_set("unit_tests") {

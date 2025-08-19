@@ -33,6 +33,10 @@
 #include "third_party/blink/renderer/platform/media/web_media_player_impl.h"
 #include "third_party/blink/renderer/platform/scheduler/public/frame_scheduler.h"
 
+#if defined(USE_NEVA_MEDIA)
+#include "third_party/blink/renderer/platform/media/neva/web_media_player_neva.h"
+#endif
+
 namespace blink {
 
 namespace {
@@ -104,7 +108,28 @@ std::unique_ptr<WebMediaPlayer> WebMediaPlayerBuilder::Build(
     bool is_background_video_playback_enabled,
     bool is_background_video_track_optimization_supported,
     std::unique_ptr<media::Demuxer> demuxer_override,
+#if defined(USE_NEVA_MEDIA)
+    scoped_refptr<ThreadSafeBrowserInterfaceBrokerProxy> remote_interfaces,
+    CreateVideoWindowCallback create_video_window_callback,
+    const WebString& application_id,
+    bool use_unlimited_media_policy,
+    bool use_neva_media,
+    media::CreateMediaPlayerNevaCB create_media_player_neva_cb) {
+#else
     scoped_refptr<ThreadSafeBrowserInterfaceBrokerProxy> remote_interfaces) {
+#endif
+
+#if defined(USE_NEVA_MEDIA)
+  if (use_neva_media && client->LoadType() == WebMediaPlayer::kLoadTypeURL &&
+      WebMediaPlayerNeva::CanSupportMediaType(
+          client->ContentMIMEType().Latin1())) {
+    return WebMediaPlayerNeva::Create(
+        frame, client, delegate, std::move(media_log), std::move(defer_load_cb),
+        std::move(audio_renderer_sink), std::move(compositor_task_runner),
+        std::move(create_video_window_callback), application_id,
+        use_unlimited_media_policy, std::move(create_media_player_neva_cb));
+  }
+#endif
   CHECK(frame_scheduler_);
   auto video_frame_compositor = std::make_unique<VideoFrameCompositor>(
       video_frame_compositor_task_runner, std::move(video_frame_submitter));

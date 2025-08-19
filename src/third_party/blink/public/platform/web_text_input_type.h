@@ -101,6 +101,16 @@ enum WebTextInputFlags {
   // behavior. Therefore, it is useful for masking in captures and selection
   // behavior changes, but nothing more; see https://crbug.com/567321058.
   kWebTextInputFlagHasBeenCustomPassword = 1 << 14,
+  ///@name USE_NEVA_APPRUNTIME
+  ///@{
+  // Renumbered for M151: upstream took bit 14 for
+  // kWebTextInputFlagHasBeenCustomPassword.
+  kWebTextInputFlagSensitiveOn = 1 << 15,
+  kWebTextInputFlagSensitiveOff = 1 << 16,
+  // Neva system keyboard
+  kWebTextInputFlagSystemKeyboardOn = 1 << 17,
+  kWebTextInputFlagSystemKeyboardOff = 1 << 18
+  ///@}
 };
 // LINT.ThenChange(//ui/base/ime/text_input_flags.h:TextInputFlags)
 
