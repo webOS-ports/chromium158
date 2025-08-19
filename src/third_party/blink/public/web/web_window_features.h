@@ -69,6 +69,9 @@ struct WebWindowFeatures {
   bool noreferrer = false;
   bool background = false;
   bool persistent = false;
+
+  // LuneOS: extra window.open() features forwarded to the OS.
+  std::vector<std::string> additional_features;
 };
 
 }  // namespace blink

@@ -28,6 +28,7 @@ blink::mojom::WindowFeaturesPtr ConvertWebWindowFeaturesToMojoWindowFeatures(
   result->is_split = web_window_features.is_split;
   result->split_position = web_window_features.split_position;
   result->split_size = web_window_features.split_size;
+  result->additional_features = web_window_features.additional_features;
   return result;
 }
 
@@ -47,6 +48,7 @@ blink::WebWindowFeatures ConvertMojoWindowFeaturesToWebWindowFeatures(
   result.is_split = window_features.is_split;
   result.split_position = window_features.split_position;
   result.split_size = window_features.split_size;
+  result.additional_features = window_features.additional_features;
   return result;
 }
 

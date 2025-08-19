@@ -46,4 +46,9 @@ struct WindowFeatures {
     // the new content. Unset means the browser default. The browser may clamp
     // this to a narrower range to keep both sides of the split usable.
     uint8? split_size;
+
+    // Upstream notes that WebWindowFeatures::additional_features is not
+    // mirrored here because the browser never uses it. webOS/LuneOS apps do:
+    // window.open() extra features are forwarded to the OS, so mirror it.
+    array<string> additional_features;
 };
