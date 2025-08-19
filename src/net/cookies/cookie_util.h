@@ -349,6 +349,9 @@ NET_EXPORT bool IsOriginBoundCookiesPartiallyEnabled();
 
 NET_EXPORT bool IsTimeLimitedInsecureCookiesEnabled();
 
+// Returns whether aggressive flushing is enabled.
+NET_EXPORT bool IsAggressiveFlushingEnabled();
+
 // Converts a string representing the http request method to its enum
 // representation.
 NET_EXPORT CookieOptions::SameSiteCookieContext::ContextMetadata::HttpMethod

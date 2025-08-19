@@ -250,6 +250,10 @@ extern const base::FeatureParam<int> kMaxPreconnectRetryInterval(
     "MaxPreconnectRetryInterval",
     30);
 
+// NEVA: aggressive cookie-store flushing for embedded targets.
+// M151 BASE_FEATURE() derives the trial name from the variable name.
+BASE_FEATURE(kAggressiveFlushing, base::FEATURE_DISABLED_BY_DEFAULT);
+
 BASE_FEATURE_PARAM(int,
                    kPingIntervalInSeconds,
                    &kSearchEnginePreconnect2,

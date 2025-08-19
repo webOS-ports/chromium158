@@ -49,6 +49,7 @@
 #include "services/network/public/cpp/features.h"
 #include "services/network/public/cpp/header_util.h"
 #include "services/network/public/cpp/is_potentially_trustworthy.h"
+#include "services/network/public/cpp/neva/cors_corb_exception.h"
 #include "services/network/public/cpp/record_ontransfersizeupdate_utils.h"
 #include "services/network/public/cpp/request_mode.h"
 #include "services/network/public/cpp/shared_http_cache_util.h"
@@ -828,7 +829,9 @@ void CorsURLLoader::OnReceiveResponse(
         GetHeaderString(*response_head,
                         header_names::kAccessControlAllowCredentials),
         request_.credentials_mode,
-        tainted_ ? url::Origin() : *request_.request_initiator);
+        tainted_ ? url::Origin() : *request_.request_initiator,
+        neva::CorsCorbException::ShouldAllowExceptionForProcess(process_id_) ||
+            neva::CorsCorbException::ShouldAllowExceptionForURL(request_.url));
     if (!result.has_value()) {
       HandleComplete(URLLoaderCompletionStatus(result.error()));
       return;
@@ -964,7 +967,9 @@ void CorsURLLoader::OnReceiveRedirect(const net::RedirectInfo& redirect_info,
         GetHeaderString(*response_head,
                         header_names::kAccessControlAllowCredentials),
         request_.credentials_mode,
-        tainted_ ? url::Origin() : *request_.request_initiator);
+        tainted_ ? url::Origin() : *request_.request_initiator,
+        neva::CorsCorbException::ShouldAllowExceptionForProcess(process_id_) ||
+            neva::CorsCorbException::ShouldAllowExceptionForURL(request_.url));
     if (!result.has_value()) {
       HandleComplete(URLLoaderCompletionStatus(result.error()));
       return;
@@ -1312,7 +1317,7 @@ void CorsURLLoader::StartPreflightCheck() {
           network_loader_factory_, isolation_info_,
           weak_devtools_observer_factory_.GetWeakPtr(), net_log_,
           context_->acam_preflight_spec_conformant(),
-          std::move(remote_observer));
+          std::move(remote_observer), process_id_);
   // On a cache hit, `PerformPreflightCheck()` synchronously runs
   // `OnPreflightRequestComplete()` (which can destroy `this`), so
   // `preflight_check_handle_` must only be assigned when `handle` is non-null.

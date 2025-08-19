@@ -1095,6 +1095,12 @@ bool IsTimeLimitedInsecureCookiesEnabled() {
          base::FeatureList::IsEnabled(features::kTimeLimitedInsecureCookies);
 }
 
+// NEVA: webOS flushes the cookie store aggressively so cookies survive an
+// unclean shutdown on embedded targets.
+bool IsAggressiveFlushingEnabled() {
+  return base::FeatureList::IsEnabled(features::kAggressiveFlushing);
+}
+
 CookieOptions::SameSiteCookieContext::ContextMetadata::HttpMethod
 HttpMethodStringToEnum(std::string_view in) {
   using HttpMethod =
