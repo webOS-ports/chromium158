@@ -48,9 +48,15 @@
 #endif
 #if BUILDFLAG(USE_VAAPI)
 #include "media/gpu/vaapi/vaapi_video_encode_accelerator.h"
+#elif defined(USE_WEBOS_CODEC)
+#include "media/gpu/webos/webos_video_encode_accelerator.h"
 #endif
 #if BUILDFLAG(IS_FUCHSIA)
 #include "media/fuchsia/video/fuchsia_video_encode_accelerator.h"
+#endif
+
+#if defined(USE_WEBOS_CODEC)
+#include "media/gpu/webos/webos_video_encode_accelerator.h"
 #endif
 
 namespace media {
@@ -78,6 +84,11 @@ std::unique_ptr<VideoEncodeAccelerator> CreateVaapiVEA() {
 #endif  // BUILDFLAG(IS_LINUX)
   return base::WrapUnique<VideoEncodeAccelerator>(
       new VaapiVideoEncodeAccelerator());
+}
+#elif defined(USE_WEBOS_CODEC)
+std::unique_ptr<VideoEncodeAccelerator> CreateWebOSVEA() {
+  return base::WrapUnique<VideoEncodeAccelerator>(
+      new WebOSVideoEncodeAccelerator());
 }
 #endif
 
@@ -188,8 +199,9 @@ std::vector<VEAFactoryFunction> CreateVEAFactoryFunctions(
     default:
       break;
   }
+#elif defined(USE_WEBOS_CODEC)
+  funcs.push_back(base::BindRepeating(&CreateWebOSVEA));
 #endif
-
 #if BUILDFLAG(IS_ANDROID)
   funcs.push_back(base::BindRepeating(&CreateAndroidVEA, gpu_workarounds));
 #endif
@@ -340,7 +352,7 @@ GpuVideoEncodeAcceleratorFactory::GetSupportedProfiles(
       GetSupportedProfilesInternal(gpu_preferences, gpu_workarounds,
                                    gpu_device));
 
-#if BUILDFLAG(USE_V4L2_CODEC)
+#if BUILDFLAG(USE_V4L2_CODEC) || defined(USE_WEBOS_CODEC)
   // V4L2-only: the encoder devices may not be visible at the time the GPU
   // process is starting. If the capabilities vector is empty, try to query the
   // devices again in the hope that they will have appeared in the meantime.

@@ -4,6 +4,7 @@
 
 import("//media/media_options.gni")
 import("//mojo/public/tools/bindings/mojom.gni")
+import("//neva/neva.gni")
 
 mojom("mojom") {
   generate_blink = true
@@ -123,6 +124,10 @@ mojom("mojom") {
     enabled_features += [ "enable_oop_video_decoder" ]
   }
 
+  if (use_neva_suspend_media_capture) {
+    enabled_features += [ "use_neva_suspend_media_capture" ]
+  }
+
   if (use_linux_video_acceleration) {
     enabled_features += [ "allow_linux_video_acceleration" ]
   }
@@ -148,6 +153,11 @@ mojom("mojom") {
 
   if (enable_cdm_storage_id) {
     enabled_features += [ "enable_cdm_storage_id" ]
+  }
+
+  if (use_neva_media) {
+    enabled_features += [ "use_neva_media" ]
+    public_deps += [ "//media/mojo/mojom/neva:mojom" ]
   }
 
   shared_typemaps = [
