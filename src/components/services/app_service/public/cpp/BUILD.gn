@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//neva/neva.gni")
+
 # Component for the core data structures and types used by App Service.
 component("app_types") {
   output_name = "APP_TYPES"
@@ -196,6 +198,10 @@ source_set("app_share_target") {
   ]
 
   visibility = [ "//components/services/app_service/*" ]
+
+  if (enable_pwa_manager_webapi) {
+    visibility += [ "//chrome/browser/web_applications/*" ]
+  }
 }
 
 source_set("macros") {
@@ -257,6 +263,10 @@ source_set("icon_loader") {
   ]
 
   visibility = [ "//components/services/app_service/*" ]
+
+  if (enable_pwa_manager_webapi) {
+    visibility += [ "//chrome/browser/web_applications/*" ]
+  }
 }
 
 source_set("intents") {
@@ -288,6 +298,10 @@ source_set("protocol_handling") {
   deps = [ "//url" ]
 
   visibility = [ "//components/services/app_service/*" ]
+
+  if (enable_pwa_manager_webapi) {
+    visibility += [ "//chrome/browser/web_applications/*" ]
+  }
 }
 
 source_set("preferred_apps") {

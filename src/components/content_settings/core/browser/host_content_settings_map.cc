@@ -171,7 +171,12 @@ content_settings::PatternPair GetPatternsFromScopingType(
     case WebsiteSettingsInfo::TOP_ORIGIN_ONLY_SCOPE:
     case WebsiteSettingsInfo::REQUESTING_ORIGIN_ONLY_SCOPE:
     case WebsiteSettingsInfo::GENERIC_SINGLE_ORIGIN_SCOPE:
+#if defined(USE_NEVA_APPRUNTIME)
+      patterns.first =
+          ContentSettingsPattern::FromURLForApplication(primary_url);
+#else
       patterns.first = ContentSettingsPattern::FromURLNoWildcard(primary_url);
+#endif
       patterns.second = ContentSettingsPattern::Wildcard();
       break;
   }
