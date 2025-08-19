@@ -233,7 +233,7 @@ TEST(KURLTest, Setters) {
 }
 
 // Tests that KURL::decodeURLEscapeSequences works as expected
-TEST(KURLTest, DecodeURLEscapeSequences) {
+TEST(KURLTest, DecodeUrlEscapeSequences) {
   struct DecodeCase {
     const char* input;
     const char* output;

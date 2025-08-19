@@ -535,7 +535,10 @@ StructTraits<blink::mojom::EventDataView,
           gesture_event->data.scroll_begin.delta_x_hint,
           gesture_event->data.scroll_begin.delta_y_hint,
           RailsModeFromGestureScrollRailsMode(
-              gesture_event->data.scroll_begin.rails_mode));
+              gesture_event->data.scroll_begin.rails_mode),
+          // NEVA: update_details carries scroll velocity; only ScrollUpdate
+          // events have it.
+          nullptr);
       break;
     case blink::WebInputEvent::Type::kGestureScrollEnd:
       gesture_data->scroll_data = blink::mojom::ScrollData::New(
@@ -548,7 +551,7 @@ StructTraits<blink::mojom::EventDataView,
           // values.
           gesture_event->data.scroll_end.delta_x_compensated,
           gesture_event->data.scroll_end.delta_y_compensated,
-          blink::mojom::RailsMode::kRailsModeFree);
+          blink::mojom::RailsMode::kRailsModeFree, nullptr);
       break;
     case blink::WebInputEvent::Type::kGestureScrollUpdate:
       gesture_data->scroll_data = blink::mojom::ScrollData::New(

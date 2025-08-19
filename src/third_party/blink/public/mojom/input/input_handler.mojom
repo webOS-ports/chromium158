@@ -123,6 +123,12 @@ struct ScrollData {
   // The rails mode represents the browser's SnapScrollController's
   // scroll axis locking (railing) decision.
   blink.mojom.RailsMode rails_mode;
+
+  // NEVA: M120 carried scroll velocity here and M151 dropped it from the
+  // mojom, but WebGestureEvent still has velocity_x/velocity_y and the neva
+  // pipeline needs generated_from_mouse_wheel_event alongside them. The
+  // ScrollUpdate struct above is a neva addition for the same reason.
+  ScrollUpdate? update_details;
 };
 
 struct PinchBeginData {
