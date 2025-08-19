@@ -11,6 +11,7 @@ import("//build/toolchain/rbe.gni")
 import("//build/toolchain/siso.gni")
 import("//build/toolchain/toolchain.gni")
 import("//build_overrides/build.gni")
+import("//neva/neva.gni")
 
 # ChromeOS is the only OS for which we support clang modules with a custom
 # sysroot. See http://crbug.com/443587270.
@@ -74,7 +75,9 @@ declare_args() {
   # TODO(crbug.com/40268473): Merge enable_raw_ptr_field and enable_raw_ref
   # field.
 
-  enable_check_raw_ptr_fields = _raw_ptr_plugin_default
+  # TODO(neva): Remove use_neva_appruntime flag once Neva meets the raw_ptr
+  # fields requirement.
+  enable_check_raw_ptr_fields = _raw_ptr_plugin_default && !use_neva_appruntime
   enable_check_raw_ref_fields = _raw_ptr_plugin_default
   enable_check_container_fields = _raw_ptr_plugin_default
 
