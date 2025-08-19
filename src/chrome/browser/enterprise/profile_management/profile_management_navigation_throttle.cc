@@ -43,6 +43,14 @@ namespace {
 // Utility struct used to store SAML attributes related to profile
 // management.
 struct SAMLProfileAttributes {
+// TODO(neva): Remove this when Neva GCC starts supporting C++20.
+#if (__cplusplus < 202002L)
+  SAMLProfileAttributes() = default;
+  SAMLProfileAttributes(const std::string& name,
+                        const std::string& domain,
+                        const std::string& token)
+      : name(name), domain(domain), token(token) {}
+#endif  // (__cplusplus < 202002L)
   std::string name;
   std::string token;
 };
