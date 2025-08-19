@@ -779,8 +779,16 @@ void ManifestToWebAppInstallInfoJob::FetchIconsInternal(
 
 void ManifestToWebAppInstallInfoJob::ParseManifestAndPopulateInfo() {
   // Create the application locale once for all localization lookups.
+#if defined(USE_NEVA_APPRUNTIME)
+  // NEVA: app_shell has no BrowserProcess, so g_browser_process cannot be
+  // referenced from libcbe.so. Manifest localization is not used on webOS, so
+  // use the undetermined language, which matches no localized manifest entry.
+  const base::i18n::LanguageTag application_locale =
+      base::i18n::GetKnownLanguageTag("und");
+#else
   const base::i18n::LanguageTag application_locale =
       g_browser_process->GetFeatures()->application_locale_storage()->GetTag();
+#endif  // defined(USE_NEVA_APPRUNTIME)
 
   install_info().title =
       GetLocalizedTitleFromManifestFields(*manifest_, application_locale);

@@ -352,6 +352,7 @@ void PopulateFileHandlerInfoFromManifest(
         web_app_file_handler.accept.push_back(std::move(web_app_accept_entry));
       }
     }
+#endif  // ENABLE_PWA_MANAGER_WEBAPI
 
     if (!web_app_file_handler.accept.empty()) {
       web_app_file_handlers.push_back(std::move(web_app_file_handler));
@@ -655,6 +656,7 @@ WebAppManagement::Type ConvertInstallSurfaceToWebAppSource(
 
 void CreateWebAppInstallTabHelpers(content::WebContents* web_contents) {
   webapps::InstallableManager::CreateForWebContents(web_contents);
+#if !defined(ENABLE_PWA_MANAGER_WEBAPI)
   favicon::CreateContentFaviconDriverForWebContents(web_contents);
 #endif  // ENABLE_PWA_MANAGER_WEBAPI
   webapps::PreRedirectionURLObserver::CreateForWebContents(web_contents);

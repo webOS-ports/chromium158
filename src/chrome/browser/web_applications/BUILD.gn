@@ -520,6 +520,7 @@ source_set("web_applications") {
       "policy/web_app_user_install_policy_handler.h",
       "web_app_utils.cc",
       "web_app_utils.h",
+      "web_app_utils_minimal.cc",
     ]
   }
 
@@ -1698,6 +1699,23 @@ source_set("app_id_helpers") {
 if (enable_pwa_manager_webapi) {
   source_set("components_minimal") {
     sources = [
+      # web_app_icon_generator.cc / web_app_install_utils.cc call
+      # shortcuts::GenerateBitmap and friends. Compiled here rather than via
+      # //chrome/browser/shortcuts, whose public_deps pull in the whole browser.
+      "//chrome/browser/shortcuts/shortcut_icon_generator.cc",
+      "//chrome/browser/shortcuts/shortcut_icon_generator.h",
+      "icons/trusted_icon_filter.cc",
+      "icons/trusted_icon_filter.h",
+      "jobs/manifest_to_web_app_install_info_job.cc",
+      "jobs/manifest_to_web_app_install_info_job.h",
+      "model/display_override.cc",
+      "model/display_override.h",
+      "model/localized_text.cc",
+      "model/localized_text.h",
+      "model/migration_source.cc",
+      "model/migration_source.h",
+      "model/web_app_icon_types.cc",
+      "model/web_app_icon_types.h",
       "policy/pre_redirection_url_observer.cc",
       "policy/pre_redirection_url_observer.h",
       "scope_extension_info.cc",
@@ -1706,10 +1724,17 @@ if (enable_pwa_manager_webapi) {
       "web_app_helpers.h",
       "web_app_icon_generator.cc",
       "web_app_icon_generator.h",
+      "web_app_icon_operations.cc",
+      "web_app_icon_operations.h",
       "web_app_install_info.cc",
       "web_app_install_info.h",
       "web_app_install_utils.cc",
       "web_app_install_utils.h",
+      "web_app_logging.cc",
+      "web_app_logging.h",
+      "web_app_scope.cc",
+      "web_app_scope.h",
+      "web_app_utils_minimal.cc",
       "web_contents/web_app_data_retriever.cc",
       "web_contents/web_app_data_retriever.h",
       "web_contents/web_app_icon_downloader.cc",
@@ -1722,6 +1747,7 @@ if (enable_pwa_manager_webapi) {
       "//chrome/browser/web_applications/proto",
       "//chrome/common:buildflags",
       "//components/services/app_service/public/cpp:protocol_handling",
+      "//components/url_formatter",
       "//components/webapps/common",
       "//components/webapps/common:mojo_bindings",
       "//skia",
