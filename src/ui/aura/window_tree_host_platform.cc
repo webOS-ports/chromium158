@@ -446,6 +446,10 @@ void WindowTreeHostPlatform::DispatchEvent(ui::Event* event) {
     event->SetHandled();
 }
 
+void WindowTreeHostPlatform::OnWindowHostClose() {
+    OnCloseRequest();
+}
+
 void WindowTreeHostPlatform::OnCloseRequest() {
   OnHostCloseRequested();
 }
