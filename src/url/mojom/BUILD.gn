@@ -10,6 +10,10 @@ mojom("url_mojom_gurl") {
   generate_java = true
   sources = [ "url.mojom" ]
 
+  if (use_neva_appruntime) {
+    enabled_features = [ "use_neva_appruntime" ]
+  }
+
   cpp_typemaps = [
     {
       types = [
@@ -65,6 +69,10 @@ mojom("url_mojom_origin") {
   generate_blink = true
   generate_java = true
   sources = [ "origin.mojom" ]
+
+  if (use_neva_appruntime) {
+    enabled_features = [ "use_neva_appruntime" ]
+  }
 
   public_deps = [
     ":url_mojom_gurl",

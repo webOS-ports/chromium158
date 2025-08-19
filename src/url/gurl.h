@@ -5,6 +5,7 @@
 #ifndef URL_GURL_H_
 #define URL_GURL_H_
 
+#include <optional>
 #include <stddef.h>
 
 #include <iosfwd>
@@ -18,6 +19,10 @@
 #include "url/third_party/mozilla/url_parse.h"
 #include "url/url_canon.h"
 #include "url/url_constants.h"
+
+#if defined(USE_NEVA_APPRUNTIME)
+#include "third_party/abseil-cpp/absl/types/optional.h"
+#endif
 
 // Represents a URL. GURL is Google's URL parsing library.
 //
@@ -57,6 +62,9 @@ class COMPONENT_EXPORT(URL) GURL {
   // Copy construction is relatively inexpensive, with most of the time going
   // to reallocating the string. It does not re-parse.
   GURL(const GURL& other);
+#if defined(USE_NEVA_APPRUNTIME)
+  GURL(const GURL& other, const std::string& webapp_id);
+#endif
   GURL(GURL&& other) noexcept;
 
   // The strings to this constructor should be UTF-8 / UTF-16. They will be
@@ -435,6 +443,12 @@ class COMPONENT_EXPORT(URL) GURL {
   // See base/trace_event/memory_usage_estimator.h for more info.
   size_t EstimateMemoryUsage() const;
 
+#if defined(USE_NEVA_APPRUNTIME)
+  // M151: std::optional -> std::optional.
+  std::optional<std::string> get_webapp_id() const { return webapp_id_; }
+  void set_webapp_id(const std::string& webapp_id) { webapp_id_ = webapp_id; }
+#endif
+
   // Helper used by GURL::IsAboutUrl and KURL::IsAboutURL. Returns true if
   // actual_path == allowed_path or actual_path == allowed_path + '/'.
   static bool IsAboutPath(std::string_view actual_path,
@@ -493,6 +507,13 @@ class COMPONENT_EXPORT(URL) GURL {
 
   // Precomputed result of SchemeIsHTTPOrHTTPS().
   bool is_http_or_https_ = false;
+
+#if defined(USE_NEVA_APPRUNTIME)
+  // webapp_id_ denotes the webapp-id that the GURL is created for and it is
+  // used to check permission of the url(origin). This value is only used in
+  // the browser process and needs to be set explicitly when it is created.
+  std::optional<std::string> webapp_id_;
+#endif
 
   // Identified components of the canonical spec.
   url::Parsed parsed_;

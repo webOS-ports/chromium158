@@ -4,6 +4,7 @@
 
 import("//build/buildflag_header.gni")
 import("//crypto/features.gni")
+import("//neva/neva.gni")
 import("//testing/test.gni")
 
 if (is_ios) {
@@ -192,6 +193,12 @@ component("crypto") {
   }
 
   defines = [ "CRYPTO_IMPLEMENTATION" ]
+
+  # NEVA: webOS ships a read-only NSS database. This has to follow the `defines`
+  # declaration above, not precede it.
+  if (is_webos && use_nss_certs) {
+    defines += [ "USE_READ_ONLY_NSSDB" ]
+  }
 }
 
 if (is_apple) {
