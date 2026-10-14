@@ -262,6 +262,19 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) RestrictedCookieManager
   // mojo::ReportBadMessage(), which closes the pipe.
   //
   // If `record_metrics` is true, this helper may emit UMA metrics.
+#if defined(USE_NEVA_APPRUNTIME)
+  // webOS apps run from file:// and all share the host-less file:// origin
+  // for cookies. These key an app's cookies to its own security origin,
+  // file://<app id>-webos/, the host location.origin already reports.
+  GURL WebAppFileCookieUrl() const;
+  bool IsWebAppFileCookieUrl(const GURL& url) const;
+  // Rewrites a file:// access to the app's cookie URL. Returns false for a
+  // file:// access that belongs to no app; such a page gets no cookies.
+  bool MapWebAppFileCookieAccess(GURL* url,
+                                 net::SiteForCookies* site_for_cookies,
+                                 url::Origin* top_frame_origin) const;
+#endif
+
   bool ValidateAccessToCookiesAt(const GURL& url,
                                  const net::SiteForCookies& site_for_cookies,
                                  const url::Origin& top_frame_origin,
@@ -288,6 +301,31 @@ class COMPONENT_EXPORT(NETWORK_SERVICE) RestrictedCookieManager
       const url::Origin& renderer_top_frame_origin) const {
     return prefer_bound_cookie_context_ ? BoundTopFrameOrigin()
                                         : renderer_top_frame_origin;
+  }
+
+  // As above for an access to `url`. A webOS application's file:// cookies are
+  // keyed to the application by MapWebAppFileCookieAccess(), which also supplies
+  // their context, so the bound context of the file:// document does not apply.
+  const net::SiteForCookies& EffectiveSiteForCookies(
+      const GURL& url,
+      const net::SiteForCookies& renderer_site_for_cookies) const {
+#if defined(USE_NEVA_APPRUNTIME)
+    if (IsWebAppFileCookieUrl(url)) {
+      return renderer_site_for_cookies;
+    }
+#endif
+    return EffectiveSiteForCookies(renderer_site_for_cookies);
+  }
+
+  const url::Origin& EffectiveTopFrameOrigin(
+      const GURL& url,
+      const url::Origin& renderer_top_frame_origin) const {
+#if defined(USE_NEVA_APPRUNTIME)
+    if (IsWebAppFileCookieUrl(url)) {
+      return renderer_top_frame_origin;
+    }
+#endif
+    return EffectiveTopFrameOrigin(renderer_top_frame_origin);
   }
 
   CookieAccesses* GetCookieAccessesForURLAndSite(
