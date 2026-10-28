@@ -374,6 +374,7 @@ source_set("audio") {
     sources += [
       "webos/audio_manager_webos.cc",
       "webos/audio_manager_webos.h",
+      "webos/palm_audio_class.h",
       "webos/webos_audio_service.cc",
       "webos/webos_audio_service.h",
       "webos/webos_input_stream.cc",
@@ -571,6 +572,10 @@ source_set("unit_tests") {
       "//media/fuchsia/audio:test_support",
       "//third_party/fuchsia-sdk/sdk/fidl/fuchsia.settings:fuchsia.settings_hlcpp",
     ]
+  }
+
+  if (use_webos_audio) {
+    sources += [ "webos/palm_audio_class_unittest.cc" ]
   }
 
   if (use_alsa) {
