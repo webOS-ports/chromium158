@@ -483,6 +483,12 @@ void ContentBrowserClient::SetProxyServer(
 bool ContentBrowserClient::IsNevaDynamicProxyEnabled() {
   return false;
 }
+
+std::optional<base::Token> ContentBrowserClient::GetCdmTypeForFrame(
+    RenderFrameHost* render_frame_host,
+    const std::string& key_system) {
+  return std::nullopt;
+}
 #endif  // defined(USE_NEVA_APPRUNTIME)
 
 bool ContentBrowserClient::ForceSniffingFileUrlsForHtml() {
