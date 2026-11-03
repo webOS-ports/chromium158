@@ -62,6 +62,11 @@ class MEDIA_MOJO_EXPORT MojoDecryptorService final : public mojom::Decryptor {
                              DecryptAndDecodeVideoCallback callback) final;
   void ResetDecoder(StreamType stream_type) final;
   void DeinitializeDecoder(StreamType stream_type) final;
+  void ReportVideoClock(int64_t ticks0_us,
+                        int64_t media0_us,
+                        int64_t ticks1_us,
+                        int64_t media1_us,
+                        bool paused) final;
 
  private:
   // Encapsulates all state, data pipes, and lifecycle management for a
