@@ -1388,6 +1388,7 @@ bool SelectionController::HandlePasteGlobalSelection(
 bool SelectionController::HandleGestureLongPress(
     const HitTestResult& hit_test_result) {
   TRACE_EVENT0("blink", "SelectionController::handleGestureLongPress");
+  long_press_put_caret_ = false;
 
   if (!Selection().IsAvailable())
     return false;
@@ -1422,6 +1423,7 @@ bool SelectionController::HandleGestureLongPress(
             .RootEditableElement();
     if (editing && editing == RootEditableElement(*pressed)) {
       SetCaretAtHitTestResult(on_text);
+      long_press_put_caret_ = true;
       return Selection().IsAvailable();
     }
   }
