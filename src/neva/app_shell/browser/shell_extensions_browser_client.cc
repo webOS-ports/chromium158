@@ -164,7 +164,8 @@ void ShellExtensionsBrowserClient::LoadResourceFromResourceBundle(
     const base::FilePath& resource_relative_path,
     int resource_id,
     scoped_refptr<net::HttpResponseHeaders> headers,
-    mojo::PendingRemote<network::mojom::URLLoaderClient> client) {
+    mojo::PendingRemote<network::mojom::URLLoaderClient> client,
+    content::BrowserContext* browser_context) {
   NOTREACHED() << "Load resources from bundles not supported.";
 }
 
@@ -262,10 +263,15 @@ ShellExtensionsBrowserClient::GetComponentExtensionResourceManager() {
   return nullptr;
 }
 
+BrowserContextLifetimeTracker*
+ShellExtensionsBrowserClient::GetBrowserContextLifetimeTracker() {
+  return nullptr;
+}
+
 void ShellExtensionsBrowserClient::BroadcastEventToRenderers(
     events::HistogramValue histogram_value,
     const std::string& event_name,
-    base::ListValue args,
+    scoped_refptr<const EventArgs> args,
     bool dispatch_to_off_the_record_profiles) {
   if (!BrowserThread::CurrentlyOn(BrowserThread::UI)) {
     content::GetUIThreadTaskRunner({})->PostTask(

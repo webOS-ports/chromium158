@@ -62,7 +62,7 @@ class UMediaClientImpl : public WebOSMediaClient,
             const std::string& cookies,
             const std::string& payload) override;
   void Seek(base::TimeDelta time,
-            const media::PipelineStatusCB& seek_cb) override;
+            const media::RepeatingPipelineStatusCallback& seek_cb) override;
   float GetPlaybackRate() const override;
   void SetPlaybackRate(float playback_rate) override;
   double GetPlaybackVolume() const override { return volume_; }
@@ -196,7 +196,7 @@ class UMediaClientImpl : public WebOSMediaClient,
   void ResetPlayerState();
 
   base::WeakPtr<WebOSMediaClient::EventListener> event_listener_;
-  media::PipelineStatusCB seek_cb_;
+  media::RepeatingPipelineStatusCallback seek_cb_;
   bool buffering_state_have_meta_data_ = false;
   double duration_ = 0.0f;
   double current_time_ = 0.0f;

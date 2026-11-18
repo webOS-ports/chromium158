@@ -176,18 +176,19 @@ component("input") {
     # compiles is down to build order - which is why it only fails on a clean
     # build and never on an incremental one.
     deps += [
-      "//components/language_detection/content/common:common",
-      "//components/local_storage_tracker/public/mojom:mojom",
-      "//components/services/quarantine/public/mojom:mojom",
-      "//components/services/storage/privileged/mojom:mojom",
-      "//components/services/storage/public/mojom:mojom",
+      "//components/language_detection/content/common",
+      "//components/local_storage_tracker/public/mojom",
+      "//components/services/quarantine/public/mojom",
+      "//components/services/storage/privileged/mojom",
+      "//components/services/storage/public/mojom",
       "//content/common:buildflags",
       "//content/common:mojo_bindings",
       "//content/public/common:buildflags",
       "//content/public/common:interfaces",
-      "//media/mojo/mojom:mojom",
+      "//content/public/common/zygote:buildflags",
+      "//media/mojo/mojom",
       "//media/mojo/mojom:remoting",
-      "//services/cert_verifier/public/mojom:mojom",
+      "//services/cert_verifier/public/mojom",
       "//tools/v8_context_snapshot:buildflags",
     ]
     if (use_neva_media) {

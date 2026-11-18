@@ -28,6 +28,14 @@ struct ValueCounter::Entry {
 ValueCounter::ValueCounter() {
 }
 
+bool ValueCounter::is_empty() const {
+  return entries_.empty();
+}
+
+size_t ValueCounter::distinct_count() const {
+  return entries_.size();
+}
+
 ValueCounter::~ValueCounter() {
 }
 

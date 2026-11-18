@@ -17,7 +17,6 @@
 #include "components/sessions/core/session_id_generator.h"
 #include "components/user_prefs/user_prefs.h"
 #include "content/public/browser/browser_context.h"
-#include "extensions/browser/api/audio/audio_api.h"
 #include "extensions/browser/extension_prefs.h"
 #include "extensions/browser/permissions_manager.h"
 
@@ -89,7 +88,6 @@ std::unique_ptr<PrefService> CreateUserPrefService(
   // Prefs should be registered before the PrefService is created.
   PrefRegistrySyncable* pref_registry = new PrefRegistrySyncable;
   ExtensionPrefs::RegisterProfilePrefs(pref_registry);
-  AudioAPI::RegisterUserPrefs(pref_registry);
   PermissionsManager::RegisterProfilePrefs(pref_registry);
 
 #if defined(USE_NEVA_BROWSER_SERVICE)

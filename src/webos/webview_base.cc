@@ -15,9 +15,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "webos/webview_base.h"
-#include "base/notimplemented.h"
 
 #include "base/command_line.h"
+#include "base/logging.h"
+#include "base/notimplemented.h"
 #include "base/unguessable_token.h"
 #include "components/viz/common/switches.h"
 #include "content/public/browser/browser_accessibility_state.h"

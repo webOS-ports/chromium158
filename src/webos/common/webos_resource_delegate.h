@@ -17,8 +17,10 @@
 #ifndef WEBOS_COMMON_WEBOS_RESOURCE_DELEGATE_H_
 #define WEBOS_COMMON_WEBOS_RESOURCE_DELEGATE_H_
 
-#include "ui/base/resource/resource_bundle.h"
 #include <optional>
+
+#include "base/memory/scoped_refptr.h"
+#include "ui/base/resource/resource_bundle.h"
 
 namespace webos {
 
@@ -38,7 +40,7 @@ class WebosResourceDelegate : public ui::ResourceBundle::Delegate {
   gfx::Image GetImageNamed(int resource_id) override;
   gfx::Image GetNativeImageNamed(int resource_id) override;
   bool HasDataResource(int resource_id) const override;
-  base::RefCountedMemory* LoadDataResourceBytes(
+  scoped_refptr<base::RefCountedMemory> LoadDataResourceBytes(
       int resource_id,
       ui::ResourceScaleFactor scale_factor) override;
   std::optional<std::string> LoadDataResourceString(int resource_id) override;

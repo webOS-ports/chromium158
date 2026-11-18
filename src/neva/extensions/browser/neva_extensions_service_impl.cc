@@ -23,6 +23,7 @@
 #include "extensions/browser/extension_host.h"
 #include "extensions/browser/extension_registry.h"
 #include "extensions/browser/process_manager.h"
+#include "extensions/common/event_args.h"
 #include "neva/extensions/browser/api/extension_action/extension_action_api.h"
 #include "neva/extensions/browser/extension_tab_util.h"
 #include "neva/extensions/browser/neva_extensions_service_factory.h"
@@ -152,7 +153,8 @@ void NevaExtensionsServiceImpl::OnExtensionTabCreated(uint64_t tab_id) {
         extensions::api::windows::OnCreated::kEventName;
     if (extensions::EventRouter::Get(context)->HasEventListener(event_name)) {
       auto event = std::make_unique<extensions::Event>(
-          extensions::events::WINDOWS_ON_CREATED, event_name, std::move(args),
+          extensions::events::WINDOWS_ON_CREATED, event_name,
+          base::MakeRefCounted<extensions::EventArgs>(std::move(args)),
           context);
       extensions::EventRouter::Get(context)->BroadcastEvent(std::move(event));
     }
@@ -192,7 +194,8 @@ void NevaExtensionsServiceImpl::OnExtensionTabClosed(uint64_t tab_id) {
         extensions::api::windows::OnRemoved::kEventName;
     if (extensions::EventRouter::Get(context)->HasEventListener(event_name)) {
       auto event = std::make_unique<extensions::Event>(
-          extensions::events::WINDOWS_ON_REMOVED, event_name, std::move(args),
+          extensions::events::WINDOWS_ON_REMOVED, event_name,
+          base::MakeRefCounted<extensions::EventArgs>(std::move(args)),
           context);
       extensions::EventRouter::Get(context)->BroadcastEvent(std::move(event));
     }

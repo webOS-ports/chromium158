@@ -5,6 +5,7 @@
 #ifndef NEVA_APP_SHELL_COMMON_SHELL_CONTENT_CLIENT_H_
 #define NEVA_APP_SHELL_COMMON_SHELL_CONTENT_CLIENT_H_
 
+#include "base/memory/scoped_refptr.h"
 #include "content/public/common/content_client.h"
 
 namespace extensions {
@@ -24,7 +25,8 @@ class ShellContentClient : public content::ContentClient {
   std::string_view GetDataResource(
       int resource_id,
       ui::ResourceScaleFactor scale_factor) override;
-  base::RefCountedMemory* GetDataResourceBytes(int resource_id) override;
+  scoped_refptr<base::RefCountedMemory> GetDataResourceBytes(
+      int resource_id) override;
   gfx::Image& GetNativeImageNamed(int resource_id) override;
 
 #if defined(USE_NEVA_CDM)

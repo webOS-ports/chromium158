@@ -242,12 +242,11 @@ class PageContents : public AppRuntimeWebContentsDelegate,
                                   const url::Origin& security_origin,
                                   blink::mojom::MediaStreamType type) override;
   void OverrideWebkitPrefs(blink::web_pref::WebPreferences* prefs) override;
-  void FindReply(content::WebContents* web_contents,
-                 int request_id,
-                 int number_of_matches,
-                 const gfx::Rect& selection_rect,
-                 int active_match_ordinal,
-                 bool final_update) override;
+  void DidReceiveFindReply(int request_id,
+                           int number_of_matches,
+                           const gfx::Rect& selection_rect,
+                           int active_match_ordinal,
+                           bool final_update) override;
 
   // JSDialogManagerDelegate
   bool RunJSDialog(const std::string& type,
@@ -259,7 +258,8 @@ class PageContents : public AppRuntimeWebContentsDelegate,
       const PageContents::CreateParams& params);
   static std::unique_ptr<content::WebContents> ReCreateWebContents(
       content::BrowserContext* browser_context,
-      const content::SessionStorageNamespaceMap& session_storage_namespace,
+      const content::SessionStorageNamespaceHandleMap&
+          session_storage_namespace,
       scoped_refptr<content::SiteInstance> site_instance);
 
   PageContents(std::unique_ptr<content::WebContents> new_contents,
@@ -323,7 +323,11 @@ class PageContents : public AppRuntimeWebContentsDelegate,
   base::CallbackListSubscription zoom_changed_subscription_;
   double zoom_factor_ = 1;
   // data for backup session
-  content::SessionStorageNamespaceMap session_storage_namespace_map_;
+  content::SessionStorageNamespaceHandleMap session_storage_namespace_map_;
+  // The running find session: the ID WebContents gave it, and the ID the
+  // embedder last asked with.
+  int content_find_request_id_ = -1;
+  int neva_find_request_id_ = -1;
   content::BrowserContext* last_browser_context_ = nullptr;
   std::string last_commited_url_;
   scoped_refptr<content::SiteInstance> site_instance_;

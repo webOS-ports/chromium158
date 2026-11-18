@@ -104,6 +104,15 @@ void VideoCaptureDeviceWebOS::StopAndDeAllocate() {
   capture_impl_ = nullptr;
 }
 
+void VideoCaptureDeviceWebOS::InvalidateBuffers() {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+
+  DCHECK(capture_impl_);
+  capture_thread_.task_runner()->PostTask(
+      FROM_HERE, base::BindOnce(&WebOSCaptureDelegate::InvalidateBuffers,
+                                capture_impl_->GetWeakPtr()));
+}
+
 void VideoCaptureDeviceWebOS::TakePhoto(TakePhotoCallback callback) {
   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
 

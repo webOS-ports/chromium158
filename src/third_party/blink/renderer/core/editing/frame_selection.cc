@@ -249,7 +249,7 @@ void FrameSelection::MoveCaretSelection(const gfx::Point& point) {
   // the last line, where it is along that line - not the start or the end of
   // the text, which is where a point above or below the text goes.
   if (const LayoutObject* const layout = editable->GetLayoutObject();
-      layout && layout->StyleRef().IsHorizontalWritingMode()) {
+      layout && layout->Style().IsHorizontalWritingMode()) {
     const gfx::Rect first = AbsoluteCaretBoundsOf(
         CreateVisiblePosition(Position::FirstPositionInNode(*editable))
             .ToPositionWithAffinity());

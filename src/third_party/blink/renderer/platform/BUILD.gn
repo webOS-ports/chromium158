@@ -1603,6 +1603,8 @@ component("platform") {
     "text/text_justify.h",
     "text/text_run.h",
     "text/unicode_bidi.h",
+    "text/unicode_range.cc",
+    "text/unicode_range.h",
     "text/unicode_utilities.cc",
     "text/unicode_utilities.h",
     "text/writing_direction_mode.cc",

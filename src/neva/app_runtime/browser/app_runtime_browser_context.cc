@@ -69,7 +69,6 @@
 #include "components/prefs/pref_service.h"
 #include "components/sessions/core/session_id_generator.h"
 #include "extensions/browser/api/api_browser_context_keyed_service_factories.h"
-#include "extensions/browser/api/audio/audio_api.h"
 #include "extensions/browser/browser_context_keyed_service_factories.h"
 #include "extensions/browser/extension_prefs.h"
 #include "extensions/browser/permissions_manager.h"
@@ -311,7 +310,6 @@ AppRuntimeBrowserContext::AppRuntimeBrowserContext(const std::string& partition,
   DeviceMediaStreamAccessHandler::RegisterProfilePrefs(pref_registry);
 #if defined(USE_NEVA_CHROME_EXTENSIONS)
   extensions::ExtensionPrefs::RegisterProfilePrefs(pref_registry);
-  extensions::AudioAPI::RegisterUserPrefs(pref_registry);
   extensions::PermissionsManager::RegisterProfilePrefs(pref_registry);
   language::LanguagePrefs::RegisterProfilePrefs(pref_registry);
 #endif

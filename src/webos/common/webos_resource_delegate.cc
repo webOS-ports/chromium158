@@ -15,13 +15,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "webos/common/webos_resource_delegate.h"
-#include "base/notimplemented.h"
 
 #include "base/base_switches.h"
 #include "base/command_line.h"
-#include "base/path_service.h"
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
+#include "base/memory/ref_counted_memory.h"
+#include "base/notimplemented.h"
+#include "base/path_service.h"
 #include "content/public/common/content_switches.h"
 #include "ui/base/ui_base_switches.h"
 
@@ -49,7 +50,8 @@ bool WebosResourceDelegate::HasDataResource(int resource_id) const {
   return false;
 }
 
-base::RefCountedMemory* WebosResourceDelegate::LoadDataResourceBytes(
+scoped_refptr<base::RefCountedMemory>
+WebosResourceDelegate::LoadDataResourceBytes(
     int resource_id,
     ui::ResourceScaleFactor scale_factor) {
   return nullptr;

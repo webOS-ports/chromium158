@@ -137,23 +137,23 @@ bool IsStreamDevicesEmpty(const blink::mojom::StreamDevices& devices) {
 
 std::string WindowOpenDispositionToString(WindowOpenDisposition disposition) {
   switch (disposition) {
-    case WindowOpenDisposition::IGNORE_ACTION:
+    case WindowOpenDisposition::kIgnoreAction:
       return "ignore";
-    case WindowOpenDisposition::SAVE_TO_DISK:
+    case WindowOpenDisposition::kSaveToDisk:
       return "save_to_disk";
-    case WindowOpenDisposition::CURRENT_TAB:
+    case WindowOpenDisposition::kCurrentTab:
       return "current_tab";
-    case WindowOpenDisposition::NEW_BACKGROUND_TAB:
+    case WindowOpenDisposition::kNewBackgroundTab:
       return "new_background_tab";
-    case WindowOpenDisposition::NEW_FOREGROUND_TAB:
+    case WindowOpenDisposition::kNewForegroundTab:
       return "new_foreground_tab";
-    case WindowOpenDisposition::NEW_WINDOW:
+    case WindowOpenDisposition::kNewWindow:
       return "new_window";
-    case WindowOpenDisposition::NEW_POPUP:
+    case WindowOpenDisposition::kNewPopup:
       return "new_popup";
-    case WindowOpenDisposition::SINGLETON_TAB:
+    case WindowOpenDisposition::kSingletonTab:
       return "singleton_tab";
-    case WindowOpenDisposition::OFF_THE_RECORD:
+    case WindowOpenDisposition::kOffTheRecord:
       return "off_the_record";
     default:
       return "unknown";
@@ -529,8 +529,7 @@ void PageContents::ScrollByY(int y_shift) {
   if (renderer_host_view) {
     blink::WebMouseWheelEvent scroll_event(
         blink::WebInputEvent::Type::kMouseWheel,
-        blink::WebInputEvent::kNoModifiers,
-        base::TimeTicks::UnixEpoch());
+        blink::WebInputEvent::kNoModifiers, base::TimeTicks::Now());
 
     scroll_event.delta_units = ui::ScrollGranularity::kScrollByPrecisePixel;
     scroll_event.delta_x = 0.0f;
@@ -1053,8 +1052,13 @@ void PageContents::FindInPage(int request_id,
   options->match_case = match_case;
   options->new_session = !find_next;
 
-  web_contents_->Find(request_id, base::UTF8ToUTF16(search_text),
-                      std::move(options), false /* skip_delay */);
+  // WebContents allocates its own request IDs now. Replies can arrive before
+  // Find() returns, so the mapping is stored from the callback.
+  neva_find_request_id_ = request_id;
+  web_contents_->Find(base::UTF8ToUTF16(search_text), std::move(options),
+                      /*skip_delay=*/false, [this](int content_request_id) {
+                        content_find_request_id_ = content_request_id;
+                      });
 }
 
 void PageContents::StopFindInPage(bool clear_selection) {
@@ -1066,14 +1070,16 @@ void PageContents::StopFindInPage(bool clear_selection) {
                                  : content::STOP_FIND_ACTION_KEEP_SELECTION);
 }
 
-void PageContents::FindReply(content::WebContents* web_contents,
-                             int request_id,
-                             int number_of_matches,
-                             const gfx::Rect& selection_rect,
-                             int active_match_ordinal,
-                             bool final_update) {
-  delegate_->OnFoundInPage(request_id, active_match_ordinal, number_of_matches,
-                           final_update);
+void PageContents::DidReceiveFindReply(int request_id,
+                                       int number_of_matches,
+                                       const gfx::Rect& selection_rect,
+                                       int active_match_ordinal,
+                                       bool final_update) {
+  if (request_id != content_find_request_id_) {
+    return;
+  }
+  delegate_->OnFoundInPage(neva_find_request_id_, active_match_ordinal,
+                           number_of_matches, final_update);
 }
 
 void PageContents::PrimaryMainFrameRenderProcessGone(
@@ -1204,7 +1210,8 @@ std::unique_ptr<content::WebContents> PageContents::CreateWebContents(
 // static
 std::unique_ptr<content::WebContents> PageContents::ReCreateWebContents(
     content::BrowserContext* browser_context,
-    const content::SessionStorageNamespaceMap& session_storage_namespace_map,
+    const content::SessionStorageNamespaceHandleMap&
+        session_storage_namespace_map,
     scoped_refptr<content::SiteInstance> site_instance) {
   NEVA_DCHECK(browser_context != nullptr);
   content::WebContents::CreateParams contents_params(browser_context, nullptr);

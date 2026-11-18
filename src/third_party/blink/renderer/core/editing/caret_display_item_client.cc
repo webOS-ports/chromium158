@@ -168,7 +168,7 @@ void CaretDisplayItemClient::UpdateStyleAndLayoutIfNeeded(
     const PositionWithAffinity& caret_position) {
   if (caret_position.AnchorNode())
     caret_width_ =
-        caret_position.AnchorNode()->GetLayoutObject()->StyleRef().CaretWidth();
+        caret_position.AnchorNode()->GetLayoutObject()->Style().CaretWidth();
 
   // This method may be called multiple times (e.g. in partial lifecycle
   // updates) before a paint invalidation. We should save previous_layout_block_

@@ -16,6 +16,8 @@
 
 #include "media/capture/video/webos/webos_capture_delegate.h"
 
+#include "base/compiler_specific.h"
+#include "base/containers/span.h"
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
 #include "base/task/bind_post_task.h"
@@ -185,6 +187,12 @@ void WebOSCaptureDelegate::StopAndDeAllocate() {
     camera_service_->StopCamera(*camera_handle_);
     camera_service_->Close(*camera_handle_);
     camera_handle_.reset();
+  }
+}
+
+void WebOSCaptureDelegate::InvalidateBuffers() {
+  if (client_) {
+    client_->InvalidateBuffers();
   }
 }
 
@@ -366,8 +374,11 @@ void WebOSCaptureDelegate::DoCapture() {
 
     if (client_)
       client_->OnIncomingCapturedData(
-          buffer, buffer_size, capture_format_, gfx::ColorSpace(), rotation_,
-          false, now, timestamp, /*capture_begin_timestamp=*/std::nullopt,
+          // SAFETY: the camera service returned `buffer_size` bytes at
+          // `buffer`.
+          UNSAFE_BUFFERS(base::span(buffer, static_cast<size_t>(buffer_size))),
+          capture_format_, gfx::ColorSpace(), rotation_, false, now, timestamp,
+          /*capture_begin_timestamp=*/std::nullopt,
           /*metadata=*/std::nullopt);
 
     frames_per_sec_++;

@@ -17,6 +17,7 @@
 #ifndef MEDIA_AUDIO_WEBOS_WEBOS_AUDIO_INPUT_STREAM_H_
 #define MEDIA_AUDIO_WEBOS_WEBOS_AUDIO_INPUT_STREAM_H_
 
+#include "base/sequence_checker.h"
 #include "media/audio/pulse/pulse_input.h"
 
 namespace media {
@@ -44,6 +45,8 @@ class WebOSAudioInputStream : public PulseAudioInputStream {
   double GetVolume() override;
 
  private:
+  SEQUENCE_CHECKER(webos_sequence_checker_);
+
   std::string preferred_device_;
   AudioManagerWebOS* audio_manager_webos_;
 };

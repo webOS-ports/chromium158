@@ -88,7 +88,7 @@ class WebOSMediaClient {
                     const std::string& cookies,
                     const std::string& payload) = 0;
   virtual void Seek(base::TimeDelta time,
-                    const media::PipelineStatusCB& seek_cb) = 0;
+                    const media::RepeatingPipelineStatusCallback& seek_cb) = 0;
   virtual float GetPlaybackRate() const = 0;
   virtual void SetPlaybackRate(float playback_rate) = 0;
   virtual double GetPlaybackVolume() const = 0;

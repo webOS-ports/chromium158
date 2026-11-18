@@ -5,12 +5,13 @@
 #include "neva/app_shell/common/shell_content_client.h"
 
 #include <string_view>
+
+#include "base/memory/ref_counted_memory.h"
 #include "base/strings/utf_string_conversions.h"
 #include "extensions/common/constants.h"
 #include "neva/app_shell/common/version.h"  // Generated file.
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/resource/resource_bundle.h"
-
 
 #if defined(USE_NEVA_MEDIA)
 #include "components/cdm/common/neva/cdm_info_util.h"
@@ -50,7 +51,7 @@ std::string_view ShellContentClient::GetDataResource(
       resource_id, scale_factor);
 }
 
-base::RefCountedMemory* ShellContentClient::GetDataResourceBytes(
+scoped_refptr<base::RefCountedMemory> ShellContentClient::GetDataResourceBytes(
     int resource_id) {
   return ui::ResourceBundle::GetSharedInstance().LoadDataResourceBytes(
       resource_id);

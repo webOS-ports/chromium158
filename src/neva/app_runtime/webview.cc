@@ -553,7 +553,7 @@ content::WebContents* WebView::OpenURLFromTab(
   content::WebContents *target = source;
   content::SiteInstance *target_site_instance = params.source_site_instance.get();
   content::Referrer referrer = params.referrer;
-  if (params.disposition != WindowOpenDisposition::CURRENT_TAB) {
+  if (params.disposition != WindowOpenDisposition::kCurrentTab) {
     target = CreateWindowForContents(0, params.url, params.disposition, blink::mojom::WindowFeatures(), params.user_gesture);
     // No window was made (no delegate, or the embedder refused it): there
     // is nothing to navigate.

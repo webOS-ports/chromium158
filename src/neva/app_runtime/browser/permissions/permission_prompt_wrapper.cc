@@ -80,11 +80,6 @@ std::optional<gfx::Rect> PermissionPromptWrapper::GetViewBoundsInScreen()
   return std::nullopt;
 }
 
-bool PermissionPromptWrapper::ShouldFinalizeRequestAfterDecided() const {
-  NOTIMPLEMENTED();
-  return true;
-}
-
 const std::vector<neva_app_runtime::PermissionRequest*>&
 PermissionPromptWrapper::Requests() {
   return wrapped_requests_;

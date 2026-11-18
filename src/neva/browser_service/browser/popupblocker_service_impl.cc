@@ -31,10 +31,10 @@ const std::string kPopUpURLTableName = "popup_blocker_urls";
 const std::string kWwwPrefix = "www.";
 
 bool ConsiderForPopupBlocking(WindowOpenDisposition disposition) {
-  return disposition == WindowOpenDisposition::NEW_POPUP ||
-         disposition == WindowOpenDisposition::NEW_FOREGROUND_TAB ||
-         disposition == WindowOpenDisposition::NEW_BACKGROUND_TAB ||
-         disposition == WindowOpenDisposition::NEW_WINDOW;
+  return disposition == WindowOpenDisposition::kNewPopup ||
+         disposition == WindowOpenDisposition::kNewForegroundTab ||
+         disposition == WindowOpenDisposition::kNewBackgroundTab ||
+         disposition == WindowOpenDisposition::kNewWindow;
 }
 
 PopupBlockerServiceImpl* PopupBlockerServiceImpl::GetInstance() {

@@ -4,7 +4,6 @@
 
 #include "neva/app_shell/renderer/shell_extensions_renderer_client.h"
 
-#include "content/public/renderer/render_thread.h"
 #include "extensions/renderer/dispatcher.h"
 #include "extensions/renderer/extensions_renderer_api_provider.h"
 
@@ -13,9 +12,7 @@ namespace extensions {
 ShellExtensionsRendererClient::ShellExtensionsRendererClient()
     : dispatcher_(std::make_unique<Dispatcher>(
           std::vector<
-              std::unique_ptr<const ExtensionsRendererAPIProvider>>())) {
-  dispatcher_->OnRenderThreadStarted(content::RenderThread::Get());
-}
+              std::unique_ptr<const ExtensionsRendererAPIProvider>>())) {}
 
 ShellExtensionsRendererClient::~ShellExtensionsRendererClient() = default;
 

@@ -50,6 +50,10 @@ struct MainFunctionParams;
 int RendererMain(MainFunctionParams);
 }  // namespace content
 
+namespace webos {
+class WebOSPlatform;
+}  // namespace webos
+
 namespace l10n_util {
 COMPONENT_EXPORT(UI_BASE)
 std::string GetApplicationLocale(std::string_view, bool);
@@ -77,6 +81,7 @@ class BASE_I18N_EXPORT DefaultIcuLocaleSetterKey {
   friend void ::android_webview::InitIcuAndResourceBundleBrowserSide();
   friend class ::WebEngineMainDelegate;
   friend class ::WebEngineBrowserMainParts;
+  friend class ::webos::WebOSPlatform;
   friend class ::ChromeMainDelegate;
   friend int(::content::RendererMain)(::content::MainFunctionParams);
   friend std::string(::l10n_util::GetApplicationLocale)(std::string_view, bool);

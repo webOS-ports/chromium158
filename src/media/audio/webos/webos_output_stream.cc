@@ -80,14 +80,14 @@ WebOSAudioOutputStream::~WebOSAudioOutputStream() {
 }
 
 bool WebOSAudioOutputStream::Open() {
-  DCHECK(thread_checker_.CalledOnValidThread());
+  DCHECK_CALLED_ON_VALID_SEQUENCE(webos_sequence_checker_);
   return pulse::CreateOutputStream(
       &pa_mainloop_, &pa_context_, &pa_stream_, params_, device_id_, track_id_,
       &StreamNotifyCallback, &StreamRequestCallback, this, preferred_device_);
 }
 
 void WebOSAudioOutputStream::Close() {
-  DCHECK(thread_checker_.CalledOnValidThread());
+  DCHECK_CALLED_ON_VALID_SEQUENCE(webos_sequence_checker_);
 
   PulseAudioOutputStream::Reset();
 
@@ -97,7 +97,7 @@ void WebOSAudioOutputStream::Close() {
 }
 
 void WebOSAudioOutputStream::SetVolume(double volume) {
-  DCHECK(thread_checker_.CalledOnValidThread());
+  DCHECK_CALLED_ON_VALID_SEQUENCE(webos_sequence_checker_);
 
   track_volume_ = volume;
   if (!track_id_.empty())
@@ -105,7 +105,7 @@ void WebOSAudioOutputStream::SetVolume(double volume) {
 }
 
 void WebOSAudioOutputStream::GetVolume(double* volume) {
-  DCHECK(thread_checker_.CalledOnValidThread());
+  DCHECK_CALLED_ON_VALID_SEQUENCE(webos_sequence_checker_);
   *volume = track_volume_;
 }
 

@@ -21,6 +21,7 @@
 #include "content/public/browser/web_contents.h"
 #include "extensions/browser/event_router.h"
 #include "extensions/browser/extension_action_manager.h"
+#include "extensions/common/event_args.h"
 #include "extensions/common/manifest_constants.h"
 #include "neva/extensions/browser/neva_extensions_service_factory.h"
 #include "neva/extensions/browser/neva_extensions_service_impl.h"
@@ -71,7 +72,9 @@ void ExtensionActionAPI::DispatchExtensionActionClicked(
   extensions::events::HistogramValue histogram_value =
       extensions::events::UNKNOWN;
   auto event = std::make_unique<extensions::Event>(
-      histogram_value, "action.onClicked", std::move(args), browser_context_);
+      histogram_value, "action.onClicked",
+      base::MakeRefCounted<extensions::EventArgs>(std::move(args)),
+      browser_context_);
   event->user_gesture = extensions::EventRouter::UserGestureState::kEnabled;
   extensions::EventRouter::Get(browser_context_)
       ->DispatchEventToExtension(extension_id, std::move(event));

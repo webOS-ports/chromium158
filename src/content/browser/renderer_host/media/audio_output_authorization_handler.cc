@@ -76,11 +76,11 @@ void CheckAccessOnUIThread(
 // Whether the frame may play on the sink of a palm audio class
 // (x-palm-media-audio-class): only a webOS application that WAM loaded from
 // the file system may, so a web page cannot ring like an alarm or a call.
-bool MayUsePalmAudioClassOnUIThread(int render_process_id,
-                                    int render_frame_id) {
+bool MayUsePalmAudioClassOnUIThread(
+    GlobalRenderFrameHostId render_frame_host_id) {
   CHECK_CURRENTLY_ON(BrowserThread::UI);
   RenderFrameHost* render_frame_host =
-      RenderFrameHost::FromID(render_process_id, render_frame_id);
+      RenderFrameHost::FromID(render_frame_host_id);
   if (!render_frame_host ||
       !render_frame_host->GetLastCommittedURL().SchemeIsFile()) {
     return false;
@@ -243,8 +243,7 @@ void AudioOutputAuthorizationHandler::RequestDeviceAuthorization(
     // only whether this frame may use the class.
     GetUIThreadTaskRunner({})->PostTaskAndReplyWithResult(
         FROM_HERE,
-        base::BindOnce(&MayUsePalmAudioClassOnUIThread, render_process_id_,
-                       render_frame_id),
+        base::BindOnce(&MayUsePalmAudioClassOnUIThread, render_frame_host_id_),
         base::BindOnce(&AudioOutputAuthorizationHandler::PalmAudioClassChecked,
                        weak_factory_.GetWeakPtr(), std::move(trace_scope),
                        std::move(cb), device_id));

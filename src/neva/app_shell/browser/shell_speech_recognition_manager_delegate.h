@@ -5,11 +5,12 @@
 #ifndef NEVA_APP_SHELL_BROWSER_SHELL_SPEECH_RECOGNITION_MANAGER_DELEGATE_H_
 #define NEVA_APP_SHELL_BROWSER_SHELL_SPEECH_RECOGNITION_MANAGER_DELEGATE_H_
 
-#include "content/public/browser/speech_recognition_event_listener.h"
 #include "build/build_config.h"
+#include "content/public/browser/global_routing_id.h"
+#include "content/public/browser/speech_recognition_event_listener.h"
+#include "content/public/browser/speech_recognition_manager_delegate.h"
 #include "media/mojo/mojom/speech_recognition.mojom.h"
 #include "media/mojo/mojom/speech_recognition_result.mojom.h"
-#include "content/public/browser/speech_recognition_manager_delegate.h"
 
 namespace extensions {
 namespace speech {
@@ -56,7 +57,8 @@ class ShellSpeechRecognitionManagerDelegate
   // app_shell has no on-device speech service; leave the receiver unbound.
   void BindSpeechRecognitionContext(
       mojo::PendingReceiver<media::mojom::SpeechRecognitionContext> receiver,
-      const std::string& language) override {}
+      const std::string& language,
+      const content::GlobalRenderFrameHostId& render_frame_host_id) override {}
 #endif
 
   static void CheckRenderFrameType(

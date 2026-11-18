@@ -21,6 +21,7 @@
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/web_contents.h"
 #include "extensions/browser/event_router.h"
+#include "extensions/common/event_args.h"
 #include "neva/extensions/browser/api/tabs/tabs_constants.h"
 #include "neva/extensions/browser/neva_extensions_service_factory.h"
 #include "neva/extensions/browser/neva_extensions_service_impl.h"
@@ -89,7 +90,9 @@ void ExtensionTabUtil::DispatchTabsOnActivated(content::BrowserContext* context,
   if (extensions::EventRouter::Get(context)->HasEventListener(event_name)) {
     auto event = std::make_unique<extensions::Event>(
         extensions::events::TABS_ON_ACTIVATED, event_name,
-        tabs::OnActivated::Create(details), context);
+        base::MakeRefCounted<extensions::EventArgs>(
+            tabs::OnActivated::Create(details)),
+        context);
     extensions::EventRouter::Get(context)->BroadcastEvent(std::move(event));
   }
 }
@@ -137,7 +140,9 @@ void ExtensionTabUtil::DispatchTabsOnUpdated(content::BrowserContext* context,
   if (extensions::EventRouter::Get(context)->HasEventListener(event_name)) {
     auto event = std::make_unique<extensions::Event>(
         extensions::events::TABS_ON_UPDATED, event_name,
-        tabs::OnUpdated::Create(tab_id, details, tab_object), context);
+        base::MakeRefCounted<extensions::EventArgs>(
+            tabs::OnUpdated::Create(tab_id, details, tab_object)),
+        context);
     extensions::EventRouter::Get(context)->BroadcastEvent(std::move(event));
   }
 }
@@ -156,7 +161,9 @@ void ExtensionTabUtil::DispatchTabsOnRemoved(content::BrowserContext* context,
   if (extensions::EventRouter::Get(context)->HasEventListener(event_name)) {
     auto event = std::make_unique<extensions::Event>(
         extensions::events::TABS_ON_REMOVED, event_name,
-        tabs::OnRemoved::Create(tab_id, details), context);
+        base::MakeRefCounted<extensions::EventArgs>(
+            tabs::OnRemoved::Create(tab_id, details)),
+        context);
     extensions::EventRouter::Get(context)->BroadcastEvent(std::move(event));
   }
 }

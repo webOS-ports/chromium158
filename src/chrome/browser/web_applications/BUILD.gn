@@ -1704,6 +1704,8 @@ if (enable_pwa_manager_webapi) {
       # //chrome/browser/shortcuts, whose public_deps pull in the whole browser.
       "//chrome/browser/shortcuts/shortcut_icon_generator.cc",
       "//chrome/browser/shortcuts/shortcut_icon_generator.h",
+      "app_id_helpers.cc",
+      "app_id_helpers.h",
       "icons/trusted_icon_filter.cc",
       "icons/trusted_icon_filter.h",
       "jobs/manifest_to_web_app_install_info_job.cc",
@@ -1746,6 +1748,7 @@ if (enable_pwa_manager_webapi) {
       "//chrome/browser/web_applications/mojom:mojom_web_apps_enum",
       "//chrome/browser/web_applications/proto",
       "//chrome/common:buildflags",
+      "//chrome/common/request_header_integrity:buildflags",
       "//components/services/app_service/public/cpp:protocol_handling",
       "//components/url_formatter",
       "//components/webapps/common",

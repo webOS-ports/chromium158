@@ -162,7 +162,8 @@ void NevaExtensionsBrowserClient::LoadResourceFromResourceBundle(
     const base::FilePath& resource_relative_path,
     int resource_id,
     scoped_refptr<net::HttpResponseHeaders> headers,
-    mojo::PendingRemote<network::mojom::URLLoaderClient> client) {
+    mojo::PendingRemote<network::mojom::URLLoaderClient> client,
+    content::BrowserContext* browser_context) {
   NOTREACHED() << "Load resources from bundles not supported.";
 }
 
@@ -263,10 +264,15 @@ NevaExtensionsBrowserClient::GetComponentExtensionResourceManager() {
   return NULL;
 }
 
+extensions::BrowserContextLifetimeTracker*
+NevaExtensionsBrowserClient::GetBrowserContextLifetimeTracker() {
+  return nullptr;
+}
+
 void NevaExtensionsBrowserClient::BroadcastEventToRenderers(
     extensions::events::HistogramValue histogram_value,
     const std::string& event_name,
-    base::ListValue args,
+    scoped_refptr<const extensions::EventArgs> args,
     bool dispatch_to_off_the_record_profiles) {
   if (!BrowserThread::CurrentlyOn(BrowserThread::UI)) {
     content::GetUIThreadTaskRunner({})->PostTask(
@@ -277,10 +283,9 @@ void NevaExtensionsBrowserClient::BroadcastEventToRenderers(
     return;
   }
 
-  auto event = std::make_unique<extensions::Event>(histogram_value, event_name,
-                                                   std::move(args));
   for (auto& it : context_prefs_map_) {
-    extensions::EventRouter::Get(it.first)->BroadcastEvent(std::move(event));
+    extensions::EventRouter::Get(it.first)->BroadcastEvent(
+        std::make_unique<extensions::Event>(histogram_value, event_name, args));
   }
 }
 

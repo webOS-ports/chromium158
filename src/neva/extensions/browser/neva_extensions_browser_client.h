@@ -17,10 +17,12 @@
 #ifndef NEVA_EXTENSIONS_BROWSER_NEVA_EXTENSIONS_BROWSER_CLIENT_H_
 #define NEVA_EXTENSIONS_BROWSER_NEVA_EXTENSIONS_BROWSER_CLIENT_H_
 
-#include "extensions/browser/extensions_browser_client.h"
 #include <map>
+
+#include "extensions/browser/extensions_browser_client.h"
 #include "extensions/browser/kiosk/kiosk_delegate.h"
 #include "extensions/browser/safe_browsing_delegate.h"
+#include "extensions/common/event_args.h"
 
 class PrefService;
 
@@ -98,7 +100,8 @@ class NevaExtensionsBrowserClient : public extensions::ExtensionsBrowserClient {
       const base::FilePath& resource_relative_path,
       int resource_id,
       scoped_refptr<net::HttpResponseHeaders> headers,
-      mojo::PendingRemote<network::mojom::URLLoaderClient> client) override;
+      mojo::PendingRemote<network::mojom::URLLoaderClient> client,
+      content::BrowserContext* browser_context) override;
   bool AllowCrossRendererResourceLoad(
       const network::ResourceRequest& request,
       network::mojom::RequestDestination destination,
@@ -136,10 +139,12 @@ class NevaExtensionsBrowserClient : public extensions::ExtensionsBrowserClient {
       content::BrowserContext* context) const override;
   const extensions::ComponentExtensionResourceManager*
   GetComponentExtensionResourceManager() override;
+  extensions::BrowserContextLifetimeTracker* GetBrowserContextLifetimeTracker()
+      override;
   void BroadcastEventToRenderers(
       extensions::events::HistogramValue histogram_value,
       const std::string& event_name,
-      base::ListValue args,
+      scoped_refptr<const extensions::EventArgs> args,
       bool dispatch_to_off_the_record_profiles) override;
   extensions::ExtensionCache* GetExtensionCache() override;
   bool IsBackgroundUpdateAllowed() override;

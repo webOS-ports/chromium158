@@ -147,8 +147,9 @@ void UMediaClientImpl::Load(bool video,
   }
 }
 
-void UMediaClientImpl::Seek(base::TimeDelta time,
-                            const media::PipelineStatusCB& seek_cb) {
+void UMediaClientImpl::Seek(
+    base::TimeDelta time,
+    const media::RepeatingPipelineStatusCallback& seek_cb) {
   NEVA_DCHECK(main_task_runner_->BelongsToCurrentThread());
   NEVA_DVLOGTF(1);
 

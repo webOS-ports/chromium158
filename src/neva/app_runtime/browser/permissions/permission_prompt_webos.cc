@@ -70,10 +70,6 @@ std::optional<gfx::Rect> PermissionPromptWebOS::GetViewBoundsInScreen() const {
   return std::nullopt;
 }
 
-bool PermissionPromptWebOS::ShouldFinalizeRequestAfterDecided() const {
-  return true;
-}
-
 void PermissionPromptWebOS::ShowBubble() {
   RequestTypes types = GetPermissionRequestTypes();
   GURL requesting_origin = delegate_->GetRequestingOrigin();

@@ -273,14 +273,16 @@ source_set("unit_tests") {
 if (enable_pwa_manager_webapi) {
   source_set("browser_minimal") {
     sources = [
+      "features.cc",
+      "features.h",
       "installable/installable_data.cc",
       "installable/installable_data.h",
       "installable/installable_data_fetcher.cc",
       "installable/installable_data_fetcher.h",
-      "installable/installable_icon_fetcher.cc",
-      "installable/installable_icon_fetcher.h",
       "installable/installable_evaluator.cc",
       "installable/installable_evaluator.h",
+      "installable/installable_icon_fetcher.cc",
+      "installable/installable_icon_fetcher.h",
       "installable/installable_logging.cc",
       "installable/installable_logging.h",
       "installable/installable_manager.cc",
@@ -295,14 +297,11 @@ if (enable_pwa_manager_webapi) {
       "installable/installable_task.h",
       "installable/installable_task_queue.cc",
       "installable/installable_task_queue.h",
-      "features.cc",
-      "features.h",
-      "webapps_client.cc",
-      "webapps_client.h",
     ]
     deps = [
-      "//components/webapps/common:mojo_bindings",
+      ":webapps_client",
       "//components/favicon/content",
+      "//components/webapps/common:mojo_bindings",
       "//skia",
       "//third_party/boringssl",
     ]

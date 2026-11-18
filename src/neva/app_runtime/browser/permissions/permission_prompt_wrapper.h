@@ -56,7 +56,6 @@ class PermissionPromptWrapper
     return std::nullopt;
   }
   std::optional<gfx::Rect> GetViewBoundsInScreen() const override;
-  bool ShouldFinalizeRequestAfterDecided() const override;
 
   // neva_app_runtime::PermissionPrompt::Delegate implementation
   const std::vector<neva_app_runtime::PermissionRequest*>& Requests() override;

@@ -15,10 +15,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "neva/app_runtime/common/app_runtime_content_client.h"
-#include "base/notimplemented.h"
 
 #include "base/files/file_util.h"
 #include "base/logging.h"
+#include "base/memory/ref_counted_memory.h"
+#include "base/notimplemented.h"
 #include "base/strings/string_util.h"
 #include "base/strings/utf_string_conversions.h"
 #include "content/public/common/webplugininfo.h"
@@ -47,8 +48,8 @@ std::string_view AppRuntimeContentClient::GetDataResource(
       resource_id, scale_factor);
 }
 
-base::RefCountedMemory* AppRuntimeContentClient::GetDataResourceBytes(
-    int resource_id) {
+scoped_refptr<base::RefCountedMemory>
+AppRuntimeContentClient::GetDataResourceBytes(int resource_id) {
   return ui::ResourceBundle::GetSharedInstance().LoadDataResourceBytes(
       resource_id);
 }

@@ -63,7 +63,7 @@ WebOSAudioInputStream::~WebOSAudioInputStream() {
 }
 
 AudioInputStream::OpenOutcome WebOSAudioInputStream::Open() {
-  DCHECK(thread_checker_.CalledOnValidThread());
+  DCHECK_CALLED_ON_VALID_SEQUENCE(webos_sequence_checker_);
 
   pulse::AutoPulseLock auto_lock(pa_mainloop_);
   if (!pulse::CreateInputStream(pa_mainloop_, pa_context_, &handle_, params_,

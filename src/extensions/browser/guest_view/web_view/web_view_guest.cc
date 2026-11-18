@@ -5,6 +5,7 @@
 #include "extensions/browser/guest_view/web_view/web_view_guest.h"
 
 #include <stddef.h>
+
 #include <map>
 #include <memory>
 #include <optional>
@@ -80,6 +81,7 @@
 #include "net/base/net_errors.h"
 #include "net/cookies/canonical_cookie.h"
 #include "services/network/public/mojom/clear_data_filter.mojom.h"
+#include "third_party/blink/public/common/input/web_gesture_event.h"
 #include "third_party/blink/public/common/logging/logging_utils.h"
 #include "third_party/blink/public/common/mediastream/media_stream_request.h"
 #include "third_party/blink/public/common/page/page_zoom.h"
@@ -1555,9 +1557,10 @@ void WebViewGuest::GuestViewDocumentOnLoadCompleted() {
 void WebViewGuest::ResourceLoadComplete(
     content::RenderFrameHost* render_frame_host,
     const content::GlobalRequestID& request_id,
+    const GURL& original_url,
     const blink::mojom::ResourceLoadInfo& resource_load_info) {
   if (!cors_exception_pdf_url_.is_empty() &&
-      cors_exception_pdf_url_ == resource_load_info.original_url) {
+      cors_exception_pdf_url_ == original_url) {
     // PDF URL load completed. Remove PDF url from exception list
     neva_app_runtime::GetAppRuntimeContentBrowserClient()
         ->SetCorsCorbDisabledForURL(cors_exception_pdf_url_, false);

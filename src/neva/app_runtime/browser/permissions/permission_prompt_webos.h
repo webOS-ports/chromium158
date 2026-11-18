@@ -56,7 +56,6 @@ class PermissionPromptWebOS : public permissions::PermissionPrompt {
     return std::nullopt;
   }
   std::optional<gfx::Rect> GetViewBoundsInScreen() const override;
-  bool ShouldFinalizeRequestAfterDecided() const override;
 
  private:
   void ShowBubble();

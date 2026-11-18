@@ -176,7 +176,7 @@ bool AdvanceFocusCSSNavigation(SpatialNavigationDirection direction,
     return false;
 
   const auto* layoutObject = interest_element->GetLayoutObject();
-  const auto* style = layoutObject ? layoutObject->Style() : nullptr;
+  const ComputedStyle* style = layoutObject ? &layoutObject->Style() : nullptr;
   if (!style)
     return false;
 

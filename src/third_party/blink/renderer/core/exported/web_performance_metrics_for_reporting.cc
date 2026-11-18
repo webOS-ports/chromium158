@@ -126,6 +126,12 @@ double WebPerformanceMetricsForReporting::LoadEventStart() const {
   return base::Milliseconds(private_->timing()->loadEventStart()).InSecondsF();
 }
 
+#if defined(USE_NEVA_APPRUNTIME)
+double WebPerformanceMetricsForReporting::LoadEventEnd() const {
+  return base::Milliseconds(private_->timing()->loadEventEnd()).InSecondsF();
+}
+#endif
+
 double WebPerformanceMetricsForReporting::FirstPaint() const {
   return base::Milliseconds(
              private_->timingForReporting()->FirstPaintForMetrics())

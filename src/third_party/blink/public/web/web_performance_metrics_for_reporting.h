@@ -141,6 +141,9 @@ class BLINK_EXPORT WebPerformanceMetricsForReporting {
   double ResponseStart() const;
   double DomContentLoadedEventStart() const;
   double LoadEventStart() const;
+#if defined(USE_NEVA_APPRUNTIME)
+  double LoadEventEnd() const;
+#endif
   double FirstPaint() const;
   base::TimeTicks FirstPaintAsMonotonicTime() const;
   double FirstImagePaint() const;

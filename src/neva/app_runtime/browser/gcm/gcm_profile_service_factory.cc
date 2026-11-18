@@ -102,7 +102,7 @@ std::unique_ptr<KeyedService> GCMProfileServiceFactory::BuildServiceInstanceForB
       context->GetDefaultStoragePartition()
           ->GetURLLoaderFactoryForBrowserProcess(),
       content::GetNetworkConnectionTracker(), version_info::Channel::UNKNOWN,
-      "org.chromium.linux", nullptr, std::make_unique<GCMClientFactory>(),
+      "org.chromium.linux", std::make_unique<GCMClientFactory>(),
       content::GetUIThreadTaskRunner({}), content::GetIOThreadTaskRunner({}),
       blocking_task_runner,
       // M151: the GCM store is encrypted through OSCryptAsync. It must be the

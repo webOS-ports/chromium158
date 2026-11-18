@@ -145,6 +145,9 @@ std::string GetAndroidDesktopCpuArchitecture();
 std::string BuildUserAgentFromOSAndProduct(const std::string& os_info,
                                            const std::string& product);
 
+// Builds a full user agent string from a short product name.
+std::string BuildUserAgentFromProduct(const std::string& product);
+
 // Returns true if the binary was built in 32-bit mode and is running on 64-bit
 // Windows; returns false otherwise.
 bool IsWoW64();

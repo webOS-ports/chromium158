@@ -16,7 +16,11 @@
 
 #include "webos_platform.h"
 
-#include "base/i18n/rtl.h"
+#include <optional>
+
+#include "base/i18n/icubridge/default_icu_locale.h"
+#include "base/i18n/language_tag.h"
+#include "base/i18n/tag_converters.h"
 #include "base/memory/singleton.h"
 #include "neva/app_runtime/browser/net/app_runtime_network_change_notifier.h"
 #include "ui/base/resource/resource_bundle.h"
@@ -52,7 +56,11 @@ void WebOSPlatform::OnNetworkStateChanged(bool is_connected) {
 
 void WebOSPlatform::OnLocaleInfoChanged(std::string language) {
   std::string locale = webos::MapWebOsToChromeLocales(language);
-  base::i18n::SetICUDefaultLocale(locale);
+  if (std::optional<base::i18n::LanguageTag> language_tag =
+          base::i18n::GetLanguageTagFromString(locale)) {
+    base::i18n::SetDefaultIcuLocale(base::i18n::DefaultIcuLocaleSetterKey(),
+                                    *language_tag);
+  }
 
   if (ui::ResourceBundle::HasSharedInstance()) {
     ui::ResourceBundle::GetSharedInstance().ReloadLocaleResources(locale);

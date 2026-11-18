@@ -8,7 +8,6 @@
 #define NEVA_APP_RUNTIME_BROWSER_GCM_GCM_PROFILE_SERVICE_FACTORY_H_
 
 #include "base/no_destructor.h"
-#include "components/gcm_driver/system_encryptor.h"
 #include "components/keyed_service/content/browser_context_keyed_service_factory.h"
 
 namespace gcm {

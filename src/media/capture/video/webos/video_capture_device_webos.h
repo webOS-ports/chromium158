@@ -36,6 +36,7 @@ class VideoCaptureDeviceWebOS : public VideoCaptureDevice {
   void AllocateAndStart(const VideoCaptureParams& params,
                         std::unique_ptr<Client> client) override;
   void StopAndDeAllocate() override;
+  void InvalidateBuffers() override;
   void TakePhoto(TakePhotoCallback callback) override;
   void GetPhotoState(GetPhotoStateCallback callback) override;
   void SetPhotoOptions(mojom::PhotoSettingsPtr settings,

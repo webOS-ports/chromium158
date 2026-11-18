@@ -585,7 +585,7 @@ bool SurfaceManager::IsOrContainsFrameSink(
     return true;
   for (auto& reference : references_) {
     if (reference.first.frame_sink_id() == parent_frame_sink_id) {
-      for (auto& surface_id : reference.second) {
+      for (auto& surface_id : reference.second.children) {
         if (IsOrContainsFrameSink(surface_id.frame_sink_id(),
                                   search_frame_sink_id))
           return true;
