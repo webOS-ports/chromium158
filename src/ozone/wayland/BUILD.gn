@@ -40,7 +40,7 @@ config("wayland_config") {
 
   include_dirs = [
     "../..",
-    "//third_party/khronos",
+    "//third_party/angle/include",
   ]
 }
 

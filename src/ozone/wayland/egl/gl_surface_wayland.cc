@@ -24,7 +24,7 @@
 #include "ozone/wayland/display.h"
 #include "ozone/wayland/shell/shell_surface.h"
 #include "ozone/wayland/window.h"
-#include "third_party/khronos/EGL/egl.h"
+#include <EGL/egl.h>
 #include "ui/ozone/common/egl_util.h"
 
 namespace ozonewayland {

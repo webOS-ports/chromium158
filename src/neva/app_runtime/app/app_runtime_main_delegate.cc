@@ -24,7 +24,6 @@
 #include "base/path_service.h"
 #include "base/run_loop.h"
 #include "build/util/chromium_git_revision.h"
-#include "components/services/heap_profiling/public/cpp/profiling_client.h"
 #include "components/viz/common/switches.h"
 #include "content/public/common/content_switches.h"
 #include "neva/app_runtime/browser/app_runtime_browser_switches.h"
@@ -107,14 +106,6 @@ void AppRuntimeMainDelegate::ProcessExiting(const std::string& process_type) {
 }
 
 std::optional<int> AppRuntimeMainDelegate::BasicStartupComplete() {
-  // The TLS slot used by the memlog allocator shim needs to be initialized
-  // early to ensure that it gets assigned a low slot number. If it gets
-  // initialized too late, the glibc TLS system will require a malloc call in
-  // order to allocate storage for a higher slot number. Since malloc is hooked,
-  // this causes re-entrancy into the allocator shim, while the TLS object is
-  // partially-initialized, which the TLS object is supposed to protect again.
-  heap_profiling::InitTLSSlot();
-
   logging::LoggingSettings settings;
   logging::InitLogging(settings);
 

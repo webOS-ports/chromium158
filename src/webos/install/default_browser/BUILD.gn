@@ -82,7 +82,8 @@ copy("default_browser") {
 
   deps = [
     "//chrome",                             # for chrome, chrome_*.pack and resources.pak
-    "//v8:v8",                              # for snapshot_blob.bin and natives_blob.bin
+    "//v8:run_mksnapshot_default",  # for snapshot_blob.bin
+    "//v8:v8",
     "//third_party/icu:icudata",            # for icudtl.dat
     "//headless:resource_pack_data",        # for headless_lib_data.pak
     "//headless:resource_pack_strings",     # for headless_lib_strings.pak

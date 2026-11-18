@@ -185,7 +185,6 @@ component("input") {
       "//content/common:mojo_bindings",
       "//content/public/common:buildflags",
       "//content/public/common:interfaces",
-      "//content/services/auction_worklet/public/mojom:mojom",
       "//media/mojo/mojom:mojom",
       "//media/mojo/mojom:remoting",
       "//services/cert_verifier/public/mojom:mojom",

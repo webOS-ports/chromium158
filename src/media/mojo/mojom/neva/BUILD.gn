@@ -17,6 +17,7 @@
 import("//mojo/public/tools/bindings/mojom.gni")
 
 mojom("mojom") {
+  generate_blink = true
   sources = [
     "media_track_info.mojom",
     "media_types_neva.mojom",

@@ -22,8 +22,6 @@
 #include "base/logging.h"
 #include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
-#include "components/heap_profiling/multi_process/supervisor.h"
-#include "components/services/heap_profiling/public/cpp/settings.h"
 #include "components/watchdog/switches.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/common/result_codes.h"
@@ -292,12 +290,6 @@ int AppRuntimeBrowserMainParts::PreCreateThreads() {
   // Make sure permissions client has been set.
   NevaPermissionsClient::GetInstance();
   return content::RESULT_CODE_NORMAL_EXIT;
-}
-
-void AppRuntimeBrowserMainParts::PostCreateThreads() {
-  heap_profiling::Mode mode = heap_profiling::GetModeForStartup();
-  if (mode != heap_profiling::Mode::kNone)
-    heap_profiling::Supervisor::GetInstance()->Start(base::NullCallback());
 }
 
 void AppRuntimeBrowserMainParts::PostMainMessageLoopRun() {

@@ -36,7 +36,8 @@ copy("weboswebruntime") {
   deps = [
     "//neva/app_runtime:app_runtime_resources", # for app_runtime_content.pak
     "//third_party/icu:icudata",                # for icudtl.dat
-    "//v8:v8",                                  # for snapshot_blob.bin
+    "//v8:run_mksnapshot_default",  # for snapshot_blob.bin
+    "//v8:v8",
     "//webos:webos_resources",                  # for webos_content.pak
     ":locales",
     ":headers",

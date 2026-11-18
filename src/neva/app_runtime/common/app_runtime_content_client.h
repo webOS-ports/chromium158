@@ -37,9 +37,6 @@ class AppRuntimeContentClient : public content::ContentClient {
       std::vector<content::CdmInfo>* cdms,
       std::vector<media::CdmHostFilePath>* cdm_host_file_paths) override;
   void AddAdditionalSchemes(Schemes* schemes) override;
-  void ExposeInterfacesToBrowser(
-      scoped_refptr<base::SequencedTaskRunner> io_task_runner,
-      mojo::BinderMap* binders) override;
 
   virtual std::string FileSchemeHostForApp(const std::string& app_id) {
     return app_id;
