@@ -43,6 +43,7 @@ source_set("unittests") {
 
   deps = [
     ":emulator",
+    "//base",
     "//testing/gmock",
     "//testing/gtest",
   ]
