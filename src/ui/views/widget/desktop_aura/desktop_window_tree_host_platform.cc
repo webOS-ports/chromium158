@@ -1261,6 +1261,17 @@ void DesktopWindowTreeHostPlatform::OnWindowStateChanged(
         base::CommandLine::ForCurrentProcess()->HasSwitch(
             switches::kEnableAggressiveReleasePolicy);
     auto set_visible = [this](bool visible) {
+      // Between BeginPrepareStackForWebApp() and
+      // FinishPrepareStackForWebApp() the display is not told about
+      // visibility, so it does not draw. A compositor made visible now would
+      // submit a frame that is never acknowledged and keep taking BeginFrames
+      // for as long as the window lives. A window state change can get here
+      // for a window that was never shown, such as the hidden window of a
+      // noWindow app that is raised on relaunch.
+      if (visible && compositor() &&
+          !compositor()->IsDisplayVisibilityEnabled()) {
+        return;
+      }
       if (compositor()) {
         compositor()->SetVisible(visible);
       }

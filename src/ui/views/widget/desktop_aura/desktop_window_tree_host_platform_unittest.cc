@@ -302,6 +302,39 @@ TEST_F(DesktopWindowTreeHostPlatformTest, ToggleMinimizeWithVideoCaptureLock) {
   EXPECT_TRUE(host_platform->compositor()->IsVisible());
 }
 
+#if defined(USE_NEVA_APPRUNTIME)
+// A window state change must not make the compositor of a web app window
+// visible before the window is shown: its display would never draw, so the
+// compositor's frame would never be acknowledged.
+TEST_F(DesktopWindowTreeHostPlatformTest,
+       WindowStateChangeKeepsPreparedWebAppWindowHidden) {
+  std::unique_ptr<Widget> widget = CreateWidgetWithNativeWidget();
+  auto* host_platform = DesktopWindowTreeHostPlatform::GetHostForWidget(
+      widget->GetNativeWindow()->GetHost()->GetAcceleratedWidget());
+  ASSERT_TRUE(host_platform);
+  ui::Compositor* compositor = widget->GetCompositor();
+  ASSERT_TRUE(compositor);
+
+  host_platform->BeginPrepareStackForWebApp();
+  EXPECT_FALSE(compositor->IsVisible());
+
+  host_platform->OnWindowStateChanged(ui::PlatformWindowState::kMinimized,
+                                      ui::PlatformWindowState::kFullScreen);
+  EXPECT_FALSE(compositor->IsVisible());
+
+  host_platform->FinishPrepareStackForWebApp();
+  EXPECT_TRUE(compositor->IsVisible());
+
+  // Once the window is shown, leaving the minimized state shows it again.
+  host_platform->OnWindowStateChanged(ui::PlatformWindowState::kFullScreen,
+                                      ui::PlatformWindowState::kMinimized);
+  EXPECT_FALSE(compositor->IsVisible());
+  host_platform->OnWindowStateChanged(ui::PlatformWindowState::kMinimized,
+                                      ui::PlatformWindowState::kFullScreen);
+  EXPECT_TRUE(compositor->IsVisible());
+}
+#endif  // defined(USE_NEVA_APPRUNTIME)
+
 // Tests that the window shape is updated from the
 // |NonClientView::GetWindowMask|.
 TEST_F(DesktopWindowTreeHostPlatformTest, UpdateWindowShapeFromWindowMask) {
