@@ -45,6 +45,11 @@ def main():
         "--extra-libs", help="List of extra non-libstd sysroot libraries"
     )
     parser.add_argument(
+        "--copy-target-json",
+        action="store_true",
+        help="Copy the target spec from RUST_TARGET_PATH",
+    )
+    parser.add_argument(
         "--rustc-revision",
         help="Not used, just passed from GN to add a dependency"
         " on the rustc version.",
@@ -150,9 +155,12 @@ def main():
             outfile = os.path.join(lib_output_dir, f)
             copy_file(infile, outfile)
 
-        infile = os.path.join(os.environ['RUST_TARGET_PATH'], f'{args.target}.json')
-        outfile = os.path.join(args.output, 'target.json')
-        copy_file(infile, outfile)
+        if args.copy_target_json:
+            infile = os.path.join(
+                os.environ['RUST_TARGET_PATH'], f'{args.target}.json'
+            )
+            outfile = os.path.join(args.output, 'target.json')
+            copy_file(infile, outfile)
 
         depfile.write("\n")
 

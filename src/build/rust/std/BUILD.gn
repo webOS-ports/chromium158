@@ -341,7 +341,14 @@ if (toolchain_has_rust) {
         rust_abi_target,
       ]
 
-      outputs = [ "$target_out_dir/target.json" ]
+      outputs = []
+
+      # Only a custom toolchain has a target spec. The targets built with
+      # Chromium's toolchain are built into rustc.
+      if (!use_chromium_rust_toolchain) {
+        args += [ "--copy-target-json" ]
+        outputs += [ "$target_out_dir/target.json" ]
+      }
       foreach(lib, all_stdlibs_to_copy) {
         outputs += [ "$target_out_dir/lib/lib$lib.rlib" ]
       }
@@ -360,19 +367,24 @@ if (toolchain_has_rust) {
                  "enable_rust=false")
       deps = [ ":find_stdlib" ]
       sources = get_target_outputs(":find_stdlib")
-      sources -= [ "$target_out_dir/target.json" ]
+      if (!use_chromium_rust_toolchain) {
+        sources -= [ "$target_out_dir/target.json" ]
+      }
       outputs =
           [ "$prebuilt_rustc_sysroot/$sysroot_lib_subdir/{{source_file_part}}" ]
 
       visibility = [ ":*" ]
     }
 
-    copy("prebuilt_rustc_copy_target_json_to_sysroot") {
-      deps = [ ":find_stdlib" ]
-      sources = [ "$target_out_dir/target.json" ]
-      outputs = [ "$prebuilt_rustc_sysroot/$sysroot_target_subdir/target.json" ]
+    if (!use_chromium_rust_toolchain) {
+      copy("prebuilt_rustc_copy_target_json_to_sysroot") {
+        deps = [ ":find_stdlib" ]
+        sources = [ "$target_out_dir/target.json" ]
+        outputs =
+            [ "$prebuilt_rustc_sysroot/$sysroot_target_subdir/target.json" ]
 
-      visibility = [ ":*" ]
+        visibility = [ ":*" ]
+      }
     }
 
     # The prebuilt rlibs are not built by GN, so they are passed to the linker
@@ -400,10 +412,12 @@ if (toolchain_has_rust) {
 
     group("std") {
       deps = [
-        ":prebuilt_rustc_copy_target_json_to_sysroot",
         ":prebuilt_stdlib_libs",
         ":stdlib_public_dependent_libs",
       ]
+      if (!use_chromium_rust_toolchain) {
+        deps += [ ":prebuilt_rustc_copy_target_json_to_sysroot" ]
+      }
     }
 
     # `stdlib_test_files` are already included in `all_stdlibs_to_copy` and
