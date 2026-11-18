@@ -137,11 +137,13 @@ NetworkServiceClient::NetworkServiceClient()
 NetworkServiceClient::~NetworkServiceClient() {
   if (IsOutOfProcessNetworkService()) {
     net::CertDatabase::GetInstance()->RemoveObserver(this);
-#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX)
+#if (BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX)) && \
+    !defined(USE_NEVA_APPRUNTIME)
     net::NetworkChangeNotifier::RemoveConnectionTypeObserver(this);
     net::NetworkChangeNotifier::RemoveMaxBandwidthObserver(this);
     net::NetworkChangeNotifier::RemoveIPAddressObserver(this);
-#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX)
+#endif  // (BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX)) &&
+        // !defined(USE_NEVA_APPRUNTIME)
   }
 }
 
@@ -220,7 +222,11 @@ NetworkServiceClient::BindURLLoaderNetworkServiceObserver() {
 
 void NetworkServiceClient::OnNetworkServiceInitialized(
     network::mojom::NetworkService* service) {
-#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX)
+#if (BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX)) && \
+    !defined(USE_NEVA_APPRUNTIME)
+  // Neva uses its own NetworkChangeNotifier, which has no AddressTrackerLinux,
+  // so the network service keeps its own tracker and needs no updates from
+  // here.
   if (IsOutOfProcessNetworkService()) {
     CHECK(!net::NetworkChangeNotifier::CreateIfNeeded(),
           base::NotFatalUntil::M160);
@@ -250,7 +256,8 @@ void NetworkServiceClient::OnNetworkServiceInitialized(
     net::NetworkChangeNotifier::AddMaxBandwidthObserver(this);
     net::NetworkChangeNotifier::AddIPAddressObserver(this);
   }
-#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX)
+#endif  // (BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX)) &&
+        // !defined(USE_NEVA_APPRUNTIME)
 }
 
 void NetworkServiceClient::OnSSLCertificateError(

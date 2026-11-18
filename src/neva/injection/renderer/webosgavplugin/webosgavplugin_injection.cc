@@ -30,7 +30,8 @@ inline bool IsTrue(v8::Maybe<bool> maybe) {
 
 }  // namespace
 
-gin::WrapperInfo WebOSGAVInjection::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo WebOSGAVInjection::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                    gin::kNevaInjection};
 
 const char WebOSGAVInjection::kPluginName[] = "webosgavplugin";
 const char WebOSGAVInjection::kOnCreatedMediaLayerName[] =

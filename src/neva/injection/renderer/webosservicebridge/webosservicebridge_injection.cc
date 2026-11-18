@@ -71,7 +71,8 @@ bool IsSubscription(const std::string& param) {
 namespace injections {
 
 gin::WrapperInfo WebOSServiceBridgeInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 bool WebOSServiceBridgeInjection::is_closing_ = false;
 std::set<WebOSServiceBridgeInjection*>

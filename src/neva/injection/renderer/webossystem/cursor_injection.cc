@@ -20,7 +20,8 @@
 
 namespace injections {
 
-gin::WrapperInfo CursorInjection::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo CursorInjection::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                  gin::kNevaInjection};
 
 CursorInjection::CursorInjection(Delegate* delegate) : delegate_(delegate) {}
 

@@ -43,7 +43,8 @@ inline bool IsTrue(v8::Maybe<bool> maybe) {
 
 }  // namespace
 
-gin::WrapperInfo SampleInjection::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo SampleInjection::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                  gin::kNevaInjection};
 
 const char SampleInjection::kCallFuncMethodName[] = "callFunc";
 const char SampleInjection::kGetValueMethodName[] = "getValue";

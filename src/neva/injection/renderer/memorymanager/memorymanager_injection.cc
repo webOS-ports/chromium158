@@ -43,7 +43,8 @@ inline bool IsTrue(v8::Maybe<bool> maybe) {
 }  // anonymous namespace
 
 gin::WrapperInfo MemoryManagerInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 const char MemoryManagerInjection::kGetMemoryStatusMethodName[] =
     "getMemoryStatus";

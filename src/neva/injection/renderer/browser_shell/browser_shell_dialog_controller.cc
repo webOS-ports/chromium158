@@ -21,7 +21,8 @@
 
 namespace injections {
 
-gin::WrapperInfo DialogController::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo DialogController::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                   gin::kNevaInjection};
 
 DialogController::DialogController(Delegate* delegate) : delegate_(delegate) {}
 

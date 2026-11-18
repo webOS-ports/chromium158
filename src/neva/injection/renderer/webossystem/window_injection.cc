@@ -20,7 +20,8 @@
 
 namespace injections {
 
-gin::WrapperInfo WindowInjection::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo WindowInjection::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                  gin::kNevaInjection};
 
 WindowInjection::WindowInjection(Delegate* delegate) : delegate_(delegate) {}
 

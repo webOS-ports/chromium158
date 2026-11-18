@@ -32,7 +32,9 @@ namespace events {
 const char kVisibilityChanged[] = "visibility-changed";
 }  // namespace events
 
-gin::WrapperInfo BrowserShellPageView::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo BrowserShellPageView::kWrapperInfo = {
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 char BrowserShellPageView::kIdPropertyName[] = "id";
 char BrowserShellPageView::kPageContentsPropertyName[] = "pageContents";

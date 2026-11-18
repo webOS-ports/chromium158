@@ -22,7 +22,8 @@
 
 namespace injections {
 
-gin::WrapperInfo BrowserShellSession::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo BrowserShellSession::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                      gin::kNevaInjection};
 
 BrowserShellSession::BrowserShellSession(
     v8::Isolate* isolate,

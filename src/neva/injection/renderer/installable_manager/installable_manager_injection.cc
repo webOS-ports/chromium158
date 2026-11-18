@@ -42,7 +42,8 @@ inline bool IsTrue(v8::Maybe<bool> maybe) {
 }  // namespace
 
 gin::WrapperInfo InstallableManagerInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 // static
 void InstallableManagerInjection::Install(blink::WebLocalFrame* frame) {

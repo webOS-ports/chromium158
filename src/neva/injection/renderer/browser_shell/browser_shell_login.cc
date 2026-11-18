@@ -20,7 +20,8 @@
 
 namespace injections {
 
-gin::WrapperInfo BrowserShellLogin::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo BrowserShellLogin::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                    gin::kNevaInjection};
 
 BrowserShellLogin::BrowserShellLogin(BrowserShellLogin::Delegate* delegate,
              browser_shell::mojom::AuthChallengePtr challenge)

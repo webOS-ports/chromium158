@@ -427,7 +427,10 @@ NetworkService::NetworkService(
   // `registry` holds a valid instance when a NetworkService is out-of-process.
   if (registry_) {
     mojo::SetDefaultProcessErrorHandler(base::BindRepeating(&HandleBadMessage));
-#if BUILDFLAG(IS_LINUX)
+#if BUILDFLAG(IS_LINUX) && !defined(USE_NEVA_APPRUNTIME)
+    // Neva uses its own NetworkChangeNotifier, which has no
+    // AddressTrackerLinux, and the service runs unsandboxed, so it tracks
+    // addresses by itself.
     net::NetworkChangeNotifier::SetFactory(
         new network::NetworkChangeNotifierPassiveFactory());
 #endif

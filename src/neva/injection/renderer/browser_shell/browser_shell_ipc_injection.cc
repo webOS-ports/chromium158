@@ -38,8 +38,8 @@ const char BrowserShellIpcInjection::kChannelPropertyName[] = "channel";
 const char BrowserShellIpcInjection::kPostMethodName[] = "post";
 
 gin::WrapperInfo BrowserShellIpcInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin
-};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 void BrowserShellIpcInjection::Install(blink::WebLocalFrame* frame) {
   v8::Isolate* isolate = frame->GetAgentGroupScheduler()->Isolate();

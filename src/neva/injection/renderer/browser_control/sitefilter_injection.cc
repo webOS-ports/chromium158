@@ -45,7 +45,8 @@ inline bool IsTrue(v8::Maybe<bool> maybe) {
 
 }  // anonymous namespace
 
-gin::WrapperInfo SiteFilterInjection::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo SiteFilterInjection::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                      gin::kNevaInjection};
 
 // static
 void SiteFilterInjection::Install(blink::WebLocalFrame* frame) {

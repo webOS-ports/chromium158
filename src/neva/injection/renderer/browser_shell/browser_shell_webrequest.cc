@@ -55,7 +55,8 @@ void GetBeforeRequestCallbackResult(
 }  // namespace
 
 gin::WrapperInfo BrowserShellWebRequest::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 BrowserShellWebRequest::BrowserShellWebRequest(
     v8::Isolate* isolate,

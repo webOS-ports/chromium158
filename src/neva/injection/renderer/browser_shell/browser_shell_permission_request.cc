@@ -18,7 +18,8 @@
 
 namespace injections {
 
-gin::WrapperInfo PermissionRequest::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo PermissionRequest::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                    gin::kNevaInjection};
 
 PermissionRequest::PermissionRequest(Delegate* delegate, uint64_t id)
     : delegate_(delegate), id_(id) {}

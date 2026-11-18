@@ -48,7 +48,8 @@ const char kOnExtensionPopupUpdateRequested[] = "update-extension-popup";
 namespace injections {
 
 gin::WrapperInfo ChromeExtensionsInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 ChromeExtensionsInjection::ChromeExtensionsInjection(
     v8::Isolate* isolate,

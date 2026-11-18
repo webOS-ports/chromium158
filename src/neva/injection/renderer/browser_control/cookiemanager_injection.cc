@@ -44,7 +44,8 @@ inline bool IsTrue(v8::Maybe<bool> maybe) {
 }  // anonymous namespace
 
 gin::WrapperInfo CookieManagerInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 // static
 void CookieManagerInjection::Install(blink::WebLocalFrame* frame) {

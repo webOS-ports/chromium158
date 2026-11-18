@@ -32,7 +32,8 @@
 namespace injections {
 
 gin::WrapperInfo BrowserControlInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 const char BrowserControlInjection::kCallFunctionMethodName[] =
     "CallFunction";

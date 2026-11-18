@@ -144,9 +144,13 @@ class PendingApprovalsShutdownNotifierFactory
     // same set of functionality.
     auto* delegate =
         ExtensionsAPIClient::Get()->GetWebstorePrivateAPIDelegate();
-    for (auto* factory : delegate->GetWebStoreAPIFactoryDependencies()) {
-      DependsOn(factory);
-    }
+#if defined(USE_NEVA_APPRUNTIME)
+    // Neva's ExtensionsAPIClient does not provide this delegate.
+    if (delegate)
+#endif
+      for (auto* factory : delegate->GetWebStoreAPIFactoryDependencies()) {
+        DependsOn(factory);
+      }
 
     for (auto* factory : GetAdditionalWebstorePrivateAPIFactoryDependencies()) {
       DependsOn(factory);
@@ -936,6 +940,11 @@ void WebstorePrivateBeginInstallWithManifest3Function::
     return;
   }
 
+#if defined(USE_NEVA_APPRUNTIME)
+  if (!ExtensionsAPIClient::Get()->GetWebstorePrivateAPIDelegate()) {
+    return;
+  }
+#endif
   ExtensionsAPIClient::Get()
       ->GetWebstorePrivateAPIDelegate()
       ->ReportFrictionAcceptedEvent(browser_context_);
@@ -1112,6 +1121,11 @@ bool WebstorePrivateBeginInstallWithManifest3Function::ShouldShowFrictionDialog(
     return false;
   }
 
+#if defined(USE_NEVA_APPRUNTIME)
+  if (!ExtensionsAPIClient::Get()->GetWebstorePrivateAPIDelegate()) {
+    return false;
+  }
+#endif
   // Only show friction if the allowlist warnings are enabled for the browser
   // context.
   return ExtensionsAPIClient::Get()

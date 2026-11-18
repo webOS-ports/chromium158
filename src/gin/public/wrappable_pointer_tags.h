@@ -89,6 +89,7 @@ enum WrappablePointerTag : uint16_t {
   kManagedStorageArea,           // extensions::ManagedStorageArea
   kMyInterceptor,                // gin::MyInterceptor
   kNetErrorPageController,       // NetErrorPageController
+  kNevaInjection,                // neva injection objects (//neva/injection)
   kNewTabPageBindings,           // NewTabPageBindings
   kPDFPluginPlaceholder,         // PDFPluginPlaceholder
   kPluginPlaceholder,            // plugins::PluginPlaceholder

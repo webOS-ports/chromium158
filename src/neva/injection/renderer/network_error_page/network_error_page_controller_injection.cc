@@ -36,7 +36,8 @@ const char NetworkErrorPageControllerInjection::kExposedName[] =
     "errorPageController";
 
 gin::WrapperInfo NetworkErrorPageControllerInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 NetworkErrorPageControllerInjection::NetworkErrorPageControllerInjection() {
   blink::Platform::Current()->GetBrowserInterfaceBroker()->GetInterface(

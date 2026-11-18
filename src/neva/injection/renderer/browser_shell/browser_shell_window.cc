@@ -34,7 +34,8 @@ const char kVKBChangeState[] = "vkb-change-state";
 const char kVKBOverlap[] = "vkb-overlap";
 }  // namespace events
 
-gin::WrapperInfo BrowserShellWindow::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo BrowserShellWindow::kWrapperInfo = {{gin::kEmbedderNativeGin},
+                                                     gin::kNevaInjection};
 
 char BrowserShellWindow::kPageViewPropertyName[] = "pageView";
 char BrowserShellWindow::kSetVisibleMethodName[] = "setVisible";

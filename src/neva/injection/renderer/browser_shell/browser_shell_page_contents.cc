@@ -70,7 +70,8 @@ const char kOnExitEvent[] = "exit";
 }  // namespace events
 
 gin::WrapperInfo BrowserShellPageContents::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 char BrowserShellPageContents::kIdPropertyName[] = "id";
 char BrowserShellPageContents::kCanGoBackPropertyName[] = "canGoBack";

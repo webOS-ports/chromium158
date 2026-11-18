@@ -388,7 +388,7 @@ network::mojom::NetworkServiceParamsPtr CreateNetworkServiceParams() {
       g_client->BindURLLoaderNetworkServiceObserver();
   network_service_params->initial_insecure_dns_mode =
       GetContentClient()->browser()->GetInitialInsecureDnsMode();
-#if BUILDFLAG(IS_LINUX)
+#if BUILDFLAG(IS_LINUX) && !defined(USE_NEVA_APPRUNTIME)
   if (IsOutOfProcessNetworkService()) {
     auto [address_map, online_links] =
         net::NetworkChangeNotifier::GetAddressMapOwner()

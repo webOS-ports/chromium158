@@ -41,8 +41,8 @@
 namespace injections {
 
 gin::WrapperInfo BrowserShellInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin
-};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 const char BrowserShellInjection::kCreateWindowMethodName[] = "createWindow";
 const char BrowserShellInjection::kGetSessionMethodName[] = "session";

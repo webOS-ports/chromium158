@@ -50,7 +50,9 @@
 
 namespace injections {
 
-gin::WrapperInfo WebOSSystemInjection::kWrapperInfo = {gin::kEmbedderNativeGin};
+gin::WrapperInfo WebOSSystemInjection::kWrapperInfo = {
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 WebOSSystemInjection::WebOSSystemInjection(blink::WebLocalFrame* frame)
     : InjectionBrowserControlBase(frame) {

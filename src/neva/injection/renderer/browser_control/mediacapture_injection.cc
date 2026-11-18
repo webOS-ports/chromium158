@@ -44,7 +44,8 @@ inline bool IsTrue(v8::Maybe<bool> maybe) {
 }  // anonymous namespace
 
 gin::WrapperInfo MediaCaptureInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 // static
 void MediaCaptureInjection::Install(blink::WebLocalFrame* frame) {

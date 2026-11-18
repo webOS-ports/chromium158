@@ -40,7 +40,8 @@ char ChromeExtensionsManagerInjection::kGetExtensionsServiceForMethodName[] =
     "getExtensionsServiceFor";
 
 gin::WrapperInfo ChromeExtensionsManagerInjection::kWrapperInfo = {
-    gin::kEmbedderNativeGin};
+    {gin::kEmbedderNativeGin},
+    gin::kNevaInjection};
 
 // static
 void ChromeExtensionsManagerInjection::Install(blink::WebLocalFrame* frame) {
