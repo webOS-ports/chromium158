@@ -586,7 +586,12 @@ std::unique_ptr<blink::WebMediaPlayer> MediaFactory::CreateMediaPlayer(
         base::BindRepeating(&blink::WebLocalFrame::HasTransientUserActivation,
                             base::Unretained(web_frame)),
         base::BindRepeating(&blink::WebLocalFrame::CreateAssociatedURLLoader,
-                            base::Unretained(web_frame)));
+                            base::Unretained(web_frame))
+#if defined(USE_NEVA_MEDIA)
+            ,
+        web_frame
+#endif
+    );
   }
 
   return media_player_builder_->Build(

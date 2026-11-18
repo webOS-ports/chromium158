@@ -17,8 +17,8 @@
 #ifndef THIRD_PARTY_BLINK_RENDERER_PLATFORM_MEDIA_NEVA_WEB_MEDIA_PLAYER_NEVA_H_
 #define THIRD_PARTY_BLINK_RENDERER_PLATFORM_MEDIA_NEVA_WEB_MEDIA_PLAYER_NEVA_H_
 
-#include <optional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -37,7 +37,6 @@
 #include "mojo/public/cpp/bindings/receiver.h"
 #include "mojo/public/cpp/bindings/remote.h"
 #include "services/media_session/public/cpp/media_position.h"
-#include "third_party/blink/renderer/platform/media/player_id_generator.h"
 #include "third_party/blink/public/platform/media/neva/create_video_window_callback.h"
 #include "third_party/blink/public/platform/media/neva/video_frame_provider_impl.h"
 #include "third_party/blink/public/platform/media/web_media_player_builder.h"
@@ -48,7 +47,10 @@
 #include "third_party/blink/public/platform/web_media_player_client.h"
 #include "third_party/blink/public/platform/web_media_player_source.h"
 #include "third_party/blink/public/platform/web_string.h"
+#include "third_party/blink/public/platform/web_surface_layer_bridge.h"
+#include "third_party/blink/public/platform/web_video_frame_submitter.h"
 #include "third_party/blink/renderer/platform/media/media_player_client.h"
+#include "third_party/blink/renderer/platform/media/player_id_generator.h"
 #include "ui/platform_window/neva/mojom/video_window.mojom.h"
 #include "url/gurl.h"
 
@@ -60,9 +62,7 @@ namespace base {
 class SingleThreadTaskRunner;
 }
 
-namespace cc {
-class VideoLayer;
-}
+namespace cc {}
 
 namespace gpu {
 struct SyncToken;
@@ -86,7 +86,8 @@ class BLINK_PLATFORM_EXPORT WebMediaPlayerNeva
     : public WebMediaPlayer,
       public WebMediaPlayerDelegate::Observer,
       public ui::mojom::VideoWindowClient,
-      public media::MediaPlayerNevaClient {
+      public media::MediaPlayerNevaClient,
+      public WebSurfaceLayerBridgeObserver {
  public:
   enum StatusOnSuspended {
     UnknownStatus = 0,
@@ -108,7 +109,9 @@ class BLINK_PLATFORM_EXPORT WebMediaPlayerNeva
       CreateVideoWindowCallback create_video_window_cb,
       const WebString& application_id,
       bool use_unlimited_media_policy,
-      media::CreateMediaPlayerNevaCB create_media_player_neva_cb);
+      media::CreateMediaPlayerNevaCB create_media_player_neva_cb,
+      CreateSurfaceLayerBridgeCB create_bridge_callback,
+      std::unique_ptr<WebVideoFrameSubmitter> video_frame_submitter);
 
   // This class implements WebMediaPlayer by keeping the private media
   // player api which is supported by target platform
@@ -124,7 +127,9 @@ class BLINK_PLATFORM_EXPORT WebMediaPlayerNeva
       CreateVideoWindowCallback create_video_window_cb,
       const WebString& application_id,
       bool use_unlimited_media_policy,
-      media::CreateMediaPlayerNevaCB create_media_player_neva_cb);
+      media::CreateMediaPlayerNevaCB create_media_player_neva_cb,
+      CreateSurfaceLayerBridgeCB create_bridge_callback,
+      std::unique_ptr<WebVideoFrameSubmitter> video_frame_submitter);
   WebMediaPlayerNeva(const WebMediaPlayerNeva&) = delete;
   WebMediaPlayerNeva& operator=(const WebMediaPlayerNeva&) = delete;
   ~WebMediaPlayerNeva() override;
@@ -180,6 +185,19 @@ class BLINK_PLATFORM_EXPORT WebMediaPlayerNeva
 
   // True if the loaded media has a playable video/audio track.
   bool HasVideo() const override;
+  bool IsVideoBeingCaptured() const override;
+
+  // WebSurfaceLayerBridgeObserver implementation.
+  void OnWebLayerUpdated() override;
+  void RegisterContentsLayer(cc::Layer* layer) override;
+  void UnregisterContentsLayer(cc::Layer* layer) override;
+
+  std::optional<viz::SurfaceId> GetSurfaceId() override;
+  void RegisterFrameSinkHierarchy() override;
+  void UnregisterFrameSinkHierarchy() override;
+  void ReparentFrameSinkHierarchy(
+      const viz::FrameSinkId& new_parent_frame_sink_id) override;
+
   bool HasAudio() const override;
 
   bool SupportsFullscreen() const;
@@ -314,6 +332,8 @@ class BLINK_PLATFORM_EXPORT WebMediaPlayerNeva
   bool Send(const std::string& message) override;
 
  private:
+  void ActivateSurfaceLayer();
+
   void ProcessPendingRequests();
 
   // void OnPipelinePlaybackStateChanged(bool playing);
@@ -442,9 +462,9 @@ class BLINK_PLATFORM_EXPORT WebMediaPlayerNeva
   // blocked.
   cc::VideoFrameProvider::Client* video_frame_provider_client_;
 
-  // The compositor layer for displaying the video content when using composited
-  // playback.
-  scoped_refptr<cc::VideoLayer> video_layer_;
+  // Owns the surface layer that displays the video content.
+  CreateSurfaceLayerBridgeCB create_bridge_callback_;
+  std::unique_ptr<WebSurfaceLayerBridge> bridge_;
 
   std::unique_ptr<media::MediaLog> media_log_;
 

@@ -51,6 +51,7 @@ class ThreadSafeBrowserInterfaceBrokerProxy;
 class UrlIndex;
 class WebAssociatedURLLoader;
 class WebContentDecryptionModule;
+class WebLocalFrame;
 class WebMediaPlayerClient;
 class WebMediaPlayerEncryptedMediaClient;
 class WebMediaPlayerDelegate;
@@ -85,7 +86,12 @@ class BLINK_PLATFORM_EXPORT WebMediaPlayerBuilder {
       FrameScheduler& frame_scheduler,
       media::RequestRoutingTokenCallback request_routing_token_cb,
       HasTransientUserActivationCB has_transient_user_activation_cb,
+#if defined(USE_NEVA_MEDIA)
+      CreateUrlLoaderCB create_url_loader_cb,
+      WebLocalFrame* neva_frame = nullptr);
+#else
       CreateUrlLoaderCB create_url_loader_cb);
+#endif
   WebMediaPlayerBuilder(const WebMediaPlayerBuilder&) = delete;
   WebMediaPlayerBuilder& operator=(const WebMediaPlayerBuilder&) = delete;
   ~WebMediaPlayerBuilder();
@@ -133,6 +139,9 @@ class BLINK_PLATFORM_EXPORT WebMediaPlayerBuilder {
  private:
   // These belong to the frame all the players are built for.
   const base::WeakPtr<FrameScheduler> frame_scheduler_;
+#if defined(USE_NEVA_MEDIA)
+  const raw_ptr<WebLocalFrame> neva_frame_;
+#endif
   const media::RequestRoutingTokenCallback request_routing_token_cb_;
   const HasTransientUserActivationCB has_transient_user_activation_cb_;
 

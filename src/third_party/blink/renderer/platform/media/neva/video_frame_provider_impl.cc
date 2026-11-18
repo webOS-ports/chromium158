@@ -17,15 +17,21 @@
 #include "third_party/blink/public/platform/media/neva/video_frame_provider_impl.h"
 
 #include "base/command_line.h"
+#include "base/functional/bind.h"
 #include "base/logging.h"
 #include "base/notimplemented.h"
+#include "base/synchronization/lock.h"
+#include "base/synchronization/waitable_event.h"
+#include "base/time/time.h"
+#include "components/viz/common/surfaces/surface_id.h"
 #include "media/base/media_log.h"
 #include "neva/logging.h"
 #include "third_party/blink/public/platform/web_media_player_client.h"
+#include "third_party/blink/public/platform/web_video_frame_submitter.h"
 #include "third_party/blink/public/web/web_local_frame.h"
 #include "third_party/blink/public/web/web_settings.h"
-#include "third_party/blink/renderer/platform/media/media_player_client.h"
 #include "third_party/blink/public/web/web_view.h"
+#include "third_party/blink/renderer/platform/media/media_player_client.h"
 
 namespace blink {
 
@@ -59,9 +65,62 @@ void VideoFrameProviderImpl::UpdateVideoFrame() {
   NEVA_DCHECK(main_task_runner_->BelongsToCurrentThread());
   NEVA_DVLOGTF(1);
 
-  current_frame_ = CreateVideoFrame(frame_type_);
+  SetCurrentVideoFrame(CreateVideoFrame(frame_type_));
 
   Repaint();
+  compositor_task_runner_->PostTask(
+      FROM_HERE, base::BindOnce(&VideoFrameProviderImpl::OnFrameChanged,
+                                weak_factory_.GetWeakPtr()));
+}
+
+void VideoFrameProviderImpl::InitializeSubmitter(
+    std::unique_ptr<WebVideoFrameSubmitter> submitter) {
+  DCHECK(compositor_task_runner_->BelongsToCurrentThread());
+  submitter_ = std::move(submitter);
+  submitter_->Initialize(this, /*is_media_stream=*/false);
+  video_frame_provider_client_ = submitter_.get();
+}
+
+void VideoFrameProviderImpl::EnableSubmission(
+    const viz::SurfaceId& surface_id,
+    media::VideoTransformation transform) {
+  DCHECK(compositor_task_runner_->BelongsToCurrentThread());
+  submitter_->SetTransform(transform);
+  submitter_->EnableSubmission(surface_id);
+}
+
+void VideoFrameProviderImpl::SetIsSurfaceVisible(bool is_visible,
+                                                 base::WaitableEvent* done) {
+  DCHECK(compositor_task_runner_->BelongsToCurrentThread());
+  submitter_->SetIsSurfaceVisible(is_visible);
+  if (done) {
+    done->Signal();
+  }
+}
+
+void VideoFrameProviderImpl::OnFrameChanged() {
+  DCHECK(compositor_task_runner_->BelongsToCurrentThread());
+  frame_submitted_ = false;
+  notify_retries_ = 0;
+  NotifyClientOfFrame();
+}
+
+void VideoFrameProviderImpl::NotifyClientOfFrame() {
+  static constexpr int kMaxNotifyRetries = 20;
+  static constexpr base::TimeDelta kNotifyRetryDelay = base::Milliseconds(50);
+
+  if (frame_submitted_ || !video_frame_provider_client_ || !HasCurrentFrame()) {
+    return;
+  }
+  video_frame_provider_client_->DidReceiveFrame();
+  if (!frame_submitted_ && notify_retries_ < kMaxNotifyRetries) {
+    ++notify_retries_;
+    compositor_task_runner_->PostDelayedTask(
+        FROM_HERE,
+        base::BindOnce(&VideoFrameProviderImpl::NotifyClientOfFrame,
+                       weak_factory_.GetWeakPtr()),
+        kNotifyRetryDelay);
+  }
 }
 
 scoped_refptr<media::VideoFrame> VideoFrameProviderImpl::CreateVideoFrame(
@@ -103,7 +162,9 @@ void VideoFrameProviderImpl::SetVideoFrameProviderClient(
   video_frame_provider_client_ = client;
 }
 
-void VideoFrameProviderImpl::PutCurrentFrame() {}
+void VideoFrameProviderImpl::PutCurrentFrame() {
+  frame_submitted_ = true;
+}
 
 base::TimeDelta VideoFrameProviderImpl::GetPreferredRenderInterval() {
   return base::Microseconds(16666);
@@ -114,15 +175,17 @@ void VideoFrameProviderImpl::OnContextLost() {
   // is not valid any more. current_frame_ should be reset. Now the compositor
   // has no concept of resetting current_frame_, so a black frame is set.
   // M151 folded HasTextures()/HasGpuMemoryBuffer() into HasSharedImage().
-  if (!current_frame_ || !current_frame_->HasSharedImage()) {
+  scoped_refptr<media::VideoFrame> frame = GetCurrentFrame();
+  if (!frame || !frame->HasSharedImage()) {
     return;
   }
-  scoped_refptr<media::VideoFrame> black_frame =
-      media::VideoFrame::CreateBlackFrame(natural_video_size_);
-  SetCurrentVideoFrame(std::move(black_frame));
+  SetCurrentVideoFrame(
+      media::VideoFrame::CreateBlackFrame(natural_video_size_));
+  OnFrameChanged();
 }
 
 scoped_refptr<media::VideoFrame> VideoFrameProviderImpl::GetCurrentFrame() {
+  base::AutoLock auto_lock(lock_);
   return current_frame_;
 }
 
@@ -133,6 +196,7 @@ bool VideoFrameProviderImpl::UpdateCurrentFrame(base::TimeTicks deadline_min,
 }
 
 bool VideoFrameProviderImpl::HasCurrentFrame() {
+  base::AutoLock auto_lock(lock_);
   return current_frame_ != nullptr;
 }
 
@@ -172,6 +236,7 @@ void VideoFrameProviderImpl::SetOverlayPlaneId(
 
 void VideoFrameProviderImpl::SetCurrentVideoFrame(
     scoped_refptr<media::VideoFrame> current_frame) {
+  base::AutoLock auto_lock(lock_);
   current_frame_ = std::move(current_frame);
 }
 

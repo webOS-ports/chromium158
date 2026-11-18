@@ -66,8 +66,16 @@ WebMediaPlayerBuilder::WebMediaPlayerBuilder(
     FrameScheduler& frame_scheduler,
     media::RequestRoutingTokenCallback request_routing_token_cb,
     HasTransientUserActivationCB has_transient_user_activation_cb,
+#if defined(USE_NEVA_MEDIA)
+    CreateUrlLoaderCB create_url_loader_cb,
+    WebLocalFrame* neva_frame)
+#else
     CreateUrlLoaderCB create_url_loader_cb)
+#endif
     : frame_scheduler_(frame_scheduler.GetWeakPtr()),
+#if defined(USE_NEVA_MEDIA)
+      neva_frame_(neva_frame),
+#endif
       request_routing_token_cb_(std::move(request_routing_token_cb)),
       has_transient_user_activation_cb_(
           std::move(has_transient_user_activation_cb)),
@@ -75,7 +83,8 @@ WebMediaPlayerBuilder::WebMediaPlayerBuilder(
           std::move(create_url_loader_cb))),
       url_index_(std::make_unique<UrlIndex>(
           fetch_context_.get(),
-          frame_scheduler.GetTaskRunner(TaskType::kNetworkingUnfreezable))) {}
+          frame_scheduler.GetTaskRunner(TaskType::kNetworkingUnfreezable))) {
+}
 
 WebMediaPlayerBuilder::~WebMediaPlayerBuilder() = default;
 
@@ -124,11 +133,14 @@ std::unique_ptr<WebMediaPlayer> WebMediaPlayerBuilder::Build(
       WebMediaPlayerNeva::CanSupportMediaType(
           client->ContentMIMEType().Latin1())) {
     return WebMediaPlayerNeva::Create(
-        frame, static_cast<MediaPlayerClient*>(client), delegate,
+        neva_frame_.get(), static_cast<MediaPlayerClient*>(client), delegate,
         std::move(media_log), std::move(defer_load_cb),
-        std::move(audio_renderer_sink), std::move(compositor_task_runner),
+        std::move(audio_renderer_sink),
+        // The submitter and its frame provider live on this runner.
+        std::move(video_frame_compositor_task_runner),
         std::move(create_video_window_callback), application_id,
-        use_unlimited_media_policy, std::move(create_media_player_neva_cb));
+        use_unlimited_media_policy, std::move(create_media_player_neva_cb),
+        std::move(create_bridge_callback), std::move(video_frame_submitter));
   }
 #endif
   CHECK(frame_scheduler_);

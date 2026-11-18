@@ -16,16 +16,16 @@
 
 #include "third_party/blink/renderer/platform/media/neva/web_media_player_neva.h"
 
-#include <optional>
 #include <algorithm>
 #include <limits>
+#include <optional>
 #include <string>
 
 #include "base/command_line.h"
 #include "base/functional/bind.h"
 #include "base/functional/callback.h"
 #include "base/notimplemented.h"
-#include "cc/layers/video_layer.h"
+#include "base/task/bind_post_task.h"
 #include "cc/trees/layer_tree_host.h"
 #include "gpu/GLES2/gl2extchromium.h"
 #include "gpu/command_buffer/client/gles2_interface.h"
@@ -40,15 +40,15 @@
 #include "media/neva/media_constants.h"
 #include "net/base/mime_util.h"
 #include "neva/logging.h"
+#include "third_party/blink/public/platform/web_audio_source_provider_impl.h"
 #include "third_party/blink/public/platform/web_media_player_source.h"
 #include "third_party/blink/public/platform/web_url.h"
-#include "third_party/blink/public/platform/web_audio_source_provider_impl.h"
 #include "third_party/blink/public/web/web_local_frame.h"
 #include "third_party/blink/public/web/web_settings.h"
 #include "third_party/blink/public/web/web_view.h"
 #include "third_party/blink/renderer/platform/media/media_player_client.h"
-#include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/media/neva/media_info_loader.h"
+#include "third_party/blink/renderer/platform/weborigin/kurl.h"
 
 using gpu::gles2::GLES2Interface;
 
@@ -170,7 +170,9 @@ std::unique_ptr<WebMediaPlayer> WebMediaPlayerNeva::Create(
     CreateVideoWindowCallback create_video_window_callback,
     const WebString& application_id,
     bool use_unlimited_media_policy,
-    media::CreateMediaPlayerNevaCB create_media_player_neva_cb) {
+    media::CreateMediaPlayerNevaCB create_media_player_neva_cb,
+    CreateSurfaceLayerBridgeCB create_bridge_callback,
+    std::unique_ptr<WebVideoFrameSubmitter> video_frame_submitter) {
   WebMediaPlayer::LoadType load_type = client->LoadType();
   media::MediaPlayerType media_player_type =
       media::MediaPlayerNevaFactory::GetMediaPlayerType(
@@ -182,8 +184,70 @@ std::unique_ptr<WebMediaPlayer> WebMediaPlayerNeva::Create(
         std::move(audio_renderer_sink), std::move(compositor_task_runner),
         media_player_type, std::move(create_video_window_callback),
         application_id, use_unlimited_media_policy,
-        std::move(create_media_player_neva_cb)));
+        std::move(create_media_player_neva_cb),
+        std::move(create_bridge_callback), std::move(video_frame_submitter)));
   return nullptr;
+}
+
+void WebMediaPlayerNeva::ActivateSurfaceLayer() {
+  bridge_ = std::move(create_bridge_callback_)
+                .Run(this, base::BindPostTask(
+                               compositor_task_runner_,
+                               base::BindRepeating(
+                                   &VideoFrameProviderImpl::SetIsSurfaceVisible,
+                                   video_frame_provider_->AsWeakPtr())));
+  bridge_->CreateSurfaceLayer();
+  // A video hole has to stay see-through.
+  bridge_->SetContentsOpaque(false);
+  compositor_task_runner_->PostTask(
+      FROM_HERE,
+      base::BindOnce(&VideoFrameProviderImpl::EnableSubmission,
+                     video_frame_provider_->AsWeakPtr(),
+                     bridge_->GetSurfaceId(), media::VideoTransformation()));
+}
+
+bool WebMediaPlayerNeva::IsVideoBeingCaptured() const {
+  // The picture is on a hardware plane that cannot be captured from here.
+  return false;
+}
+
+void WebMediaPlayerNeva::OnWebLayerUpdated() {}
+
+void WebMediaPlayerNeva::RegisterContentsLayer(cc::Layer* layer) {
+  bridge_->SetContentsOpaque(false);
+  client_->SetCcLayer(layer);
+}
+
+void WebMediaPlayerNeva::UnregisterContentsLayer(cc::Layer* layer) {
+  if (client_) {
+    client_->SetCcLayer(nullptr);
+  }
+}
+
+std::optional<viz::SurfaceId> WebMediaPlayerNeva::GetSurfaceId() {
+  if (bridge_) {
+    return bridge_->GetSurfaceId();
+  }
+  return std::nullopt;
+}
+
+void WebMediaPlayerNeva::RegisterFrameSinkHierarchy() {
+  if (bridge_) {
+    bridge_->RegisterFrameSinkHierarchy();
+  }
+}
+
+void WebMediaPlayerNeva::UnregisterFrameSinkHierarchy() {
+  if (bridge_) {
+    bridge_->UnregisterFrameSinkHierarchy();
+  }
+}
+
+void WebMediaPlayerNeva::ReparentFrameSinkHierarchy(
+    const viz::FrameSinkId& new_parent_frame_sink_id) {
+  if (bridge_) {
+    bridge_->ReparentFrameSinkHierarchy(new_parent_frame_sink_id);
+  }
 }
 
 bool WebMediaPlayerNeva::CanSupportMediaType(const std::string& mime) {
@@ -206,7 +270,9 @@ WebMediaPlayerNeva::WebMediaPlayerNeva(
     CreateVideoWindowCallback create_video_window_callback,
     const WebString& application_id,
     bool use_unlimited_media_policy,
-    media::CreateMediaPlayerNevaCB create_media_player_neva_cb)
+    media::CreateMediaPlayerNevaCB create_media_player_neva_cb,
+    CreateSurfaceLayerBridgeCB create_bridge_callback,
+    std::unique_ptr<WebVideoFrameSubmitter> video_frame_submitter)
     : frame_(frame),
       main_task_runner_(frame->GetTaskRunner(TaskType::kMediaElementEvent)),
       client_(client),
@@ -230,8 +296,8 @@ WebMediaPlayerNeva::WebMediaPlayerNeva(
       // Threaded compositing isn't enabled universally yet.
       compositor_task_runner_(
           compositor_task_runner
-          ? std::move(compositor_task_runner)
-          : base::SingleThreadTaskRunner::GetCurrentDefault()),
+              ? std::move(compositor_task_runner)
+              : base::SingleThreadTaskRunner::GetCurrentDefault()),
       render_mode_(WebMediaPlayer::RenderModeNone),
       app_id_(application_id.Utf8().data()),
       is_loading_(false),
@@ -266,6 +332,11 @@ WebMediaPlayerNeva::WebMediaPlayerNeva(
       std::make_unique<VideoFrameProviderImpl>(compositor_task_runner_);
   video_frame_provider_->SetWebLocalFrame(frame);
   video_frame_provider_->SetWebMediaPlayerClient(client);
+  create_bridge_callback_ = std::move(create_bridge_callback);
+  compositor_task_runner_->PostTask(
+      FROM_HERE, base::BindOnce(&VideoFrameProviderImpl::InitializeSubmitter,
+                                video_frame_provider_->AsWeakPtr(),
+                                std::move(video_frame_submitter)));
   SetRenderMode(GetClient()->RenderMode());
   std::optional<bool> is_audio_disabled = GetClient()->IsAudioDisabled();
   if (is_audio_disabled.has_value())
@@ -1020,10 +1091,8 @@ void WebMediaPlayerNeva::OnVideoSizeChanged(const gfx::Size& coded_size,
   video_frame_provider_->UpdateVideoFrame();
 
   // Lazily allocate compositing layer.
-  if (!video_layer_) {
-    video_layer_ = cc::VideoLayer::Create(video_frame_provider_.get(),
-                                          media::VIDEO_ROTATION_0);
-    client_->SetCcLayer(video_layer_.get());
+  if (!bridge_) {
+    ActivateSurfaceLayer();
 
     // If we're paused after we receive metadata for the first time, tell the
     // delegate we can now be safely suspended due to inactivity if a subsequent
@@ -1440,8 +1509,9 @@ void WebMediaPlayerNeva::Shutdown() {
   player_api_.reset();
 
   GetClient()->SetCcLayer(nullptr);
-  if (video_layer_) {
-    video_layer_->StopUsingProvider();
+  if (bridge_) {
+    bridge_->ClearObserver();
+    bridge_.reset();
   }
 
   if (delegate_) {

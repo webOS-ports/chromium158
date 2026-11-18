@@ -17,6 +17,8 @@
 #ifndef THIRD_PARTY_BLINK_PUBLIC_PLATFORM_MEDIA_NEVA_VIDEO_FRAME_PROVIDER_IMPL_H_
 #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_MEDIA_NEVA_VIDEO_FRAME_PROVIDER_IMPL_H_
 
+#include <memory>
+
 #include "base/compiler_specific.h"
 #include "base/memory/weak_ptr.h"
 #include "base/task/single_thread_task_runner.h"
@@ -24,9 +26,18 @@
 #include "media/base/pipeline_metadata.h"
 #include "media/base/renderer_factory.h"
 #include "media/base/video_frame.h"
+#include "media/base/video_transformation.h"
 #include "third_party/blink/public/platform/media/web_media_player_delegate.h"
 #include "third_party/blink/public/platform/web_common.h"
 #include "third_party/blink/public/platform/web_media_player.h"
+
+namespace base {
+class WaitableEvent;
+}  // namespace base
+
+namespace viz {
+class SurfaceId;
+}  // namespace viz
 
 namespace content {
 class RenderThreadImpl;
@@ -37,6 +48,7 @@ namespace blink {
 class WebLocalFrame;
 class WebMediaPlayerClient;
 class WebMediaPlayerEncryptedMediaClient;
+class WebVideoFrameSubmitter;
 
 // This class provides three types of VideoFrame
 //  kHole    : Support video hole based media player
@@ -82,6 +94,14 @@ class BLINK_PLATFORM_EXPORT VideoFrameProviderImpl
   void SetFrameType(FrameType type);
   void SetOverlayPlaneId(const base::UnguessableToken& overlay_plane_id);
 
+  // Surface submission. Chromium 158 removed cc::VideoLayer, so frames reach
+  // the display through a WebVideoFrameSubmitter. These run on
+  // |compositor_task_runner_|, which is also where this object is destroyed.
+  void InitializeSubmitter(std::unique_ptr<WebVideoFrameSubmitter> submitter);
+  void EnableSubmission(const viz::SurfaceId& surface_id,
+                        media::VideoTransformation transform);
+  void SetIsSurfaceVisible(bool is_visible, base::WaitableEvent* done);
+
  protected:
   scoped_refptr<media::VideoFrame> CreateVideoFrame(FrameType frame_type);
 
@@ -112,6 +132,16 @@ class BLINK_PLATFORM_EXPORT VideoFrameProviderImpl
   const scoped_refptr<base::SingleThreadTaskRunner> compositor_task_runner_;
 
  private:
+  // Tells the submitter about a new frame. It drops a frame while an earlier
+  // one is unacknowledged, so this retries until PutCurrentFrame() confirms
+  // that the frame was submitted.
+  void OnFrameChanged();
+  void NotifyClientOfFrame();
+
+  std::unique_ptr<WebVideoFrameSubmitter> submitter_;
+  bool frame_submitted_ = true;
+  int notify_retries_ = 0;
+
   base::UnguessableToken overlay_plane_id_;
   FrameType frame_type_ = FrameType::kUnknown;
 
