@@ -12,6 +12,7 @@ import("//build/config/coverage/coverage.gni")
 import("//build/config/dcheck_always_on.gni")
 import("//build/config/host_byteorder.gni")
 import("//build/config/mips.gni")
+import("//neva/neva.gni")
 import("//build/config/riscv.gni")
 import("//build/config/sanitizers/sanitizers.gni")
 import("//build/toolchain/kythe.gni")
@@ -2679,17 +2680,39 @@ if (v8_use_metagen) {
         v8_metagen_libclang_so,
         "--libclang-bindings-dir",
         v8_metagen_libclang_bindings_dir,
-
-        # The toolchain major, so metagen can warn if the loaded libclang is
-        # out of step with clang.
-        "--expect-libclang-major",
-        clang_version,
       ]
+
+      # NEVA: the OE build sets clang_version to "latest", which is not a
+      # major version number.
+      if (clang_version != "latest") {
+        args += [
+          # The toolchain major, so metagen can warn if the loaded libclang is
+          # out of step with clang.
+          "--expect-libclang-major",
+          clang_version,
+        ]
+      }
     } else {
       args += [
         "--libclang-dir",
         rebase_path("//third_party/llvm-libclang", root_build_dir),
       ]
+    }
+
+    # NEVA: the OE build takes libc++ from the target sysroot through the
+    # toolchain's extra_cxxflags, and `gn desc` does not report those, so the
+    # parse would otherwise find no C++ standard library on cross builds and
+    # the build host's libstdc++ on x64.
+    if (is_webos && current_toolchain == default_toolchain &&
+        !use_custom_libcxx) {
+      foreach(_flag, string_split(clang_extra_cxxflags)) {
+        if (string_replace(_flag, "/c++/v1", "") != _flag) {
+          args += [
+            "--extra-flag=-nostdinc++",
+            "--extra-flag=$_flag",
+          ]
+        }
+      }
     }
 
     if (is_win) {
