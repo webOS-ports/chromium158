@@ -352,7 +352,6 @@ void PopulateFileHandlerInfoFromManifest(
         web_app_file_handler.accept.push_back(std::move(web_app_accept_entry));
       }
     }
-#endif  // ENABLE_PWA_MANAGER_WEBAPI
 
     if (!web_app_file_handler.accept.empty()) {
       web_app_file_handlers.push_back(std::move(web_app_file_handler));
