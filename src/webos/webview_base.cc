@@ -206,16 +206,23 @@ void WebViewBase::AddCustomPluginDir(const std::string& directory) {
   webview_->AddCustomPluginDir(directory);
 }
 
+// The override also covers navigations a page starts before this contents has
+// committed anything (override_in_new_tabs). A window.open() window's first
+// load can be such a navigation - it is for a window opened from an iframe -
+// and every later page in the window inherits what that first one had. With
+// false, those windows ran on the engine default: a plain Chrome user agent
+// with empty Sec-CH-UA headers, which Google's sign-in refuses as an insecure
+// browser.
 void WebViewBase::SetUserAgent(const std::string& useragent) {
   if (neva_user_agent::IsUserAgentClientHintsEnabled()) {
     blink::UserAgentOverride ua_override;
     ua_override.ua_string_override = useragent;
     ua_override.ua_metadata_override =
         neva_user_agent::GetDefaultUserAgentMetadata();
-    GetWebContents()->SetUserAgentOverride(ua_override, false);
+    GetWebContents()->SetUserAgentOverride(ua_override, true);
   } else {
     GetWebContents()->SetUserAgentOverride(
-        blink::UserAgentOverride::UserAgentOnly(useragent), false);
+        blink::UserAgentOverride::UserAgentOnly(useragent), true);
   }
 }
 
