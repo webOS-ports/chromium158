@@ -60,7 +60,7 @@ void AppRuntimeWebViewControllerImpl::CallFunction(
     CallFunctionCallback callback) {
   std::string result;
   if (!CurrentFrameIsAllowed(name)) {
-    std::move(callback).Run(std::move(result));
+    std::move(callback).Run(std::string());
     return;
   }
   if (webview_controller_delegate_)

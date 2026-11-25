@@ -269,7 +269,7 @@ TEST(WebOSApiPolicyTest, ADocumentWithNoCreatorIsRefused) {
 TEST(WebOSApiPolicyTest, ACycleOfBlankFramesEnds) {
   const WebOSApiPolicy policy = AppPolicy();
   FakeFrame a{GURL(url::kAboutBlankURL), url::Origin(), nullptr};
-  FakeFrame b{GURL(url::kAboutBlankURL), url::Origin(), &a};
+  const FakeFrame b{GURL(url::kAboutBlankURL), url::Origin(), &a};
   a.creator = &b;  // two windows that opened each other
   EXPECT_FALSE(Allows(policy, a));
 }

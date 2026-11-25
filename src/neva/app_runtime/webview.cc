@@ -334,8 +334,8 @@ void WebView::SendWebOSApiPolicy(content::RenderFrameHost* render_frame_host) {
   }
   mojo::AssociatedRemote<mojom::AppRuntimeWebViewClient> client;
   render_frame_host->GetRemoteAssociatedInterfaces()->GetInterface(&client);
-  client->SetWebOSApiPolicy(webos_api_policy_.restricted(),
-                            std::move(directories), std::move(origins));
+  client->SetWebOSApiPolicy(webos_api_policy_.restricted(), directories,
+                            origins);
 }
 
 void WebView::ClearExtensions() {

@@ -18,7 +18,7 @@ namespace {
 // the embedder for.
 constexpr char kIdentifierFunction[] = "identifier";
 
-WebOSApiPolicy::Document DocumentOf(content::RenderFrameHost* frame) {
+WebOSApiPolicy::Document DocumentOf(const content::RenderFrameHost* frame) {
   return {frame->GetLastCommittedURL(), frame->GetLastCommittedOrigin()};
 }
 
