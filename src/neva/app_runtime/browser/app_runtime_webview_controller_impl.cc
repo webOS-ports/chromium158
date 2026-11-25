@@ -17,6 +17,9 @@
 #include "neva/app_runtime/browser/app_runtime_webview_controller_impl.h"
 #include "components/media_control/browser/neva/media_suspender.h"
 
+#include "base/logging.h"
+#include "content/public/browser/render_frame_host.h"
+#include "neva/app_runtime/browser/webos_api_access.h"
 #include "neva/app_runtime/public/webview_controller_delegate.h"
 
 namespace neva_app_runtime {
@@ -56,6 +59,10 @@ void AppRuntimeWebViewControllerImpl::CallFunction(
     const std::vector<std::string>& args,
     CallFunctionCallback callback) {
   std::string result;
+  if (!CurrentFrameIsAllowed(name)) {
+    std::move(callback).Run(std::move(result));
+    return;
+  }
   if (webview_controller_delegate_)
     result = webview_controller_delegate_->RunFunction(name, args);
   std::move(callback).Run(std::move(result));
@@ -63,8 +70,26 @@ void AppRuntimeWebViewControllerImpl::CallFunction(
 
 void AppRuntimeWebViewControllerImpl::SendCommand(
     const std::string& name, const std::vector<std::string>& args) {
+  if (!CurrentFrameIsAllowed(name)) {
+    return;
+  }
   if (webview_controller_delegate_)
     webview_controller_delegate_->RunCommand(name, args);
+}
+
+bool AppRuntimeWebViewControllerImpl::CurrentFrameIsAllowed(
+    const std::string& name) {
+  // webOSSystem's functions run in the embedder as the application. Only a
+  // document that gets the injections may call them; the renderer only puts
+  // them where the policy allows, so a call from anywhere else means it did
+  // not (or was made not to).
+  content::RenderFrameHost& frame = receivers_.CurrentTargetFrame();
+  if (WebOSApiAccess::IsAllowed(&frame)) {
+    return true;
+  }
+  LOG(WARNING) << "webOSSystem." << name << " refused for a document of "
+               << frame.GetLastCommittedOrigin().GetDebugString();
+  return false;
 }
 
 AppRuntimeWebViewControllerImpl::AppRuntimeWebViewControllerImpl(

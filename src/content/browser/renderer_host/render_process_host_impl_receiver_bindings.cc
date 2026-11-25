@@ -10,7 +10,6 @@
 #if defined(USE_NEVA_APPRUNTIME)
 #include "neva/pal_service/public/mojom/memorymanager.mojom.h"
 #include "neva/pal_service/public/mojom/sample.mojom.h"
-#include "neva/pal_service/public/mojom/system_servicebridge.mojom.h"
 #include "neva/pal_service/pal_service.h"
 #if defined(ENABLE_NETWORK_ERROR_PAGE_CONTROLLER_WEBAPI)
 #include "neva/pal_service/public/mojom/network_error_page_controller.mojom.h"
@@ -188,14 +187,10 @@ void RenderProcessHostImpl::RegisterMojoInterfaces() {
                 .BindSample(std::move(receiver));
           }));
 
-  AddUIThreadInterface(
-      registry.get(),
-      base::BindRepeating(
-          [](mojo::PendingReceiver<pal::mojom::SystemServiceBridgeProvider>
-                 receiver) {
-            pal::GetPalService(content::GetUIThreadTaskRunner({}))
-                .BindSystemServiceBridgeProvider(std::move(receiver));
-          }));
+  // pal::mojom::SystemServiceBridgeProvider is no longer bound for the whole
+  // process: neva_app_runtime::WebOSServiceBridgeProvider serves it per
+  // document, from the frame's interface broker, and decides which documents
+  // get it and which application they call the bus as.
 
 #if defined(ENABLE_NETWORK_ERROR_PAGE_CONTROLLER_WEBAPI)
   AddUIThreadInterface(

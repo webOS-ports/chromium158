@@ -26,6 +26,7 @@
 #include "net/cookies/canonical_cookie.h"
 #include "net/http/http_response_headers.h"
 #include "neva/app_runtime/browser/app_runtime_web_contents_delegate.h"
+#include "neva/app_runtime/common/webos_api_policy.h"
 #include "neva/app_runtime/public/app_runtime_constants.h"
 #include "third_party/blink/public/common/mediastream/media_stream_request.h"
 #include "third_party/blink/public/mojom/peerconnection/peer_connection_tracker.mojom-shared.h"
@@ -109,6 +110,12 @@ class WebView : public AppRuntimeWebContentsDelegate,
   void StopLoading();
   void LoadExtension(const std::string& name);
   void ClearExtensions();
+
+  // Which documents get the extensions and the webOS APIs behind them
+  // (WebOSApiPolicy). Applies to every frame from the next document on, and
+  // to the browser-side checks at once.
+  void SetWebOSApiPolicy(WebOSApiPolicy policy);
+  const WebOSApiPolicy& GetWebOSApiPolicy() const { return webos_api_policy_; }
   void ReplaceBaseURL(const std::string& new_url);
   void SendWebViewInfo(const std::string& app_path,
                        const std::string& trust_level);
@@ -325,7 +332,11 @@ class WebView : public AppRuntimeWebContentsDelegate,
 
   std::unique_ptr<content::WebContents> web_contents_;
   std::unique_ptr<blink::web_pref::WebPreferences> web_preferences_;
+  // Tells the frame's renderer the policy; sent ahead of any injection.
+  void SendWebOSApiPolicy(content::RenderFrameHost* render_frame_host);
+
   std::unique_ptr<WebAppInjectionManager> injection_manager_;
+  WebOSApiPolicy webos_api_policy_;
 
   bool is_being_destroyed_ = false;
   bool should_suppress_dialogs_ = false;

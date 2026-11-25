@@ -59,7 +59,9 @@ class WebOSServiceBridgeInjection
   static void SetAppInClosing(bool closing);
   static void DidCloseNotify(const std::string& param);
 
-  explicit WebOSServiceBridgeInjection(std::string appid);
+  // `frame` is the frame whose script made the object; null leaves the bridge
+  // unconnected.
+  WebOSServiceBridgeInjection(std::string appid, blink::WebLocalFrame* frame);
   WebOSServiceBridgeInjection(const WebOSServiceBridgeInjection&) = delete;
   WebOSServiceBridgeInjection& operator=(const WebOSServiceBridgeInjection&) =
       delete;

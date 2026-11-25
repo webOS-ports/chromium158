@@ -74,6 +74,7 @@
 #include "extensions/browser/extension_util.h"
 #include "neva/app_runtime/browser/app_runtime_webview_controller_impl.h"
 #include "neva/app_runtime/browser/app_runtime_webview_host_impl.h"
+#include "neva/app_runtime/browser/webos_service_bridge_provider.h"
 #include "neva/browser_service/public/mojom/constants.mojom.h"
 #include "neva/user_agent/common/user_agent.h"
 #include "services/network/public/mojom/network_service.mojom.h"
@@ -732,6 +733,10 @@ void ShellContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
   map->Add<blink::mojom::BadgeService>(
       base::BindRepeating(&ShellContentBrowserClient::BindBadgeServiceForFrame,
                           base::Unretained(this)));
+  // Was bound for the whole renderer process by content; see
+  // neva_app_runtime::WebOSServiceBridgeProvider.
+  map->Add<pal::mojom::SystemServiceBridgeProvider>(base::BindRepeating(
+      &neva_app_runtime::WebOSServiceBridgeProvider::Create));
 }
 
 void ShellContentBrowserClient::BindBadgeServiceForFrame(

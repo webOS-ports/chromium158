@@ -61,14 +61,38 @@ if (enable_widevine && !use_neva_cdm) {
   }
 }
 
+# Which documents of a web view get the webOS APIs. Kept apart from the
+# browser and renderer code that uses it, so the unit tests can link it alone.
+source_set("webos_api_policy") {
+  sources = [
+    "common/webos_api_policy.cc",
+    "common/webos_api_policy.h",
+  ]
+
+  public_deps = [
+    "//base",
+    "//url",
+  ]
+
+  deps = [ "//net" ]
+}
+
 source_set("app_runtime_webview_controller") {
   sources = [
     "browser/app_runtime_webview_controller_impl.cc",
     "browser/app_runtime_webview_controller_impl.h",
+    "browser/webos_api_access.cc",
+    "browser/webos_api_access.h",
+    "browser/webos_service_bridge_provider.cc",
+    "browser/webos_service_bridge_provider.h",
     "public/webview_controller_delegate.h",
   ]
 
+  deps = [ "//neva/pal_service" ]
+
   public_deps = [
+    ":webos_api_policy",
+    "//content/public/browser",
     "//content/public/common",
     "//neva/app_runtime/public/mojom",
     "//skia:skia",
@@ -673,9 +697,11 @@ source_set("unittests") {
     "input_panel_content_bounds.cc",
     "input_panel_content_bounds.h",
     "input_panel_content_bounds_unittest.cc",
+    "common/webos_api_policy_unittest.cc",
   ]
 
   deps = [
+    ":webos_api_policy",
     "//base",
     "//testing/gtest",
     "//ui/gfx/geometry",

@@ -70,6 +70,7 @@
 #include "neva/app_runtime/browser/app_runtime_web_contents_view_delegate_creator.h"
 #include "neva/app_runtime/browser/app_runtime_webview_controller_impl.h"
 #include "neva/app_runtime/browser/app_runtime_webview_host_impl.h"
+#include "neva/app_runtime/browser/webos_service_bridge_provider.h"
 #include "neva/app_runtime/browser/custom_handlers/app_runtime_protocol_handler_registry_factory.h"
 #include "neva/app_runtime/common/app_runtime_file_access_controller.h"
 #include "neva/app_runtime/public/app_runtime_switches.h"
@@ -1169,6 +1170,8 @@ void AppRuntimeContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
   map->Add<blink::mojom::BadgeService>(base::BindRepeating(
       &AppRuntimeContentBrowserClient::BindBadgeServiceForFrame,
       base::Unretained(this)));
+  map->Add<pal::mojom::SystemServiceBridgeProvider>(
+      base::BindRepeating(&WebOSServiceBridgeProvider::Create));
 }
 
 void AppRuntimeContentBrowserClient::BindBadgeServiceForFrame(

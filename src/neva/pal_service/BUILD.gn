@@ -78,3 +78,14 @@ component("pal_service") {
     "//services/cert_verifier/public/mojom:mojom",
   ]
 }
+
+source_set("unittests") {
+  testonly = true
+
+  sources = [ "system_servicebridge_unittest.cc" ]
+
+  deps = [
+    ":pal_service",
+    "//testing/gtest",
+  ]
+}
