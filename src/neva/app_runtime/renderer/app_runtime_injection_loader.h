@@ -38,6 +38,9 @@ class InjectionLoader {
 
   void Add(std::string name, std::string arguments_json);
   void Load(blink::WebLocalFrame* frame);
+  // The frame's new document gets none: forget the document they were last
+  // loaded into, which has gone, so Unload() does not reach into this one.
+  void Skip();
   void Unload();
 
  private:

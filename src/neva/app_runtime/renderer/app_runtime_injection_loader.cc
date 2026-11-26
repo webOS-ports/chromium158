@@ -64,6 +64,12 @@ void InjectionLoader::Load(blink::WebLocalFrame* frame) {
   }
 }
 
+void InjectionLoader::Skip() {
+  for (auto& context : injections_contexts_) {
+    context.frame = nullptr;
+  }
+}
+
 void InjectionLoader::Unload() {
   for (auto rit = injections_contexts_.crbegin();
        rit != injections_contexts_.crend(); ++rit) {

@@ -31,6 +31,7 @@
 #include "content/public/common/content_switches.h"
 #include "content/public/common/neva/proxy_settings.h"
 #include "net/http/http_util.h"
+#include "neva/app_runtime/common/webos_api_policy.h"
 #include "neva/app_runtime/public/app_runtime_event.h"
 #include "neva/app_runtime/webview.h"
 #include "neva/app_runtime/webview_profile.h"
@@ -718,6 +719,30 @@ void WebViewBase::SetAppPath(const std::string& app_path) {
     return;
 
   webview_info_.app_path = app_path;
+
+  // An application's view: from now on only its own documents get the
+  // webOS APIs (see AddWebOSApiAllowedDirectory()).
+  if (app_path.empty())
+    return;
+  neva_app_runtime::WebOSApiPolicy policy = webview_->GetWebOSApiPolicy();
+  policy.Restrict();
+  if (!policy.AddAllowedDirectory(app_path)) {
+    LOG(WARNING) << __func__ << "(): " << app_path
+                 << " is no folder the webOS APIs can be limited to";
+  }
+  webview_->SetWebOSApiPolicy(std::move(policy));
+}
+
+void WebViewBase::AddWebOSApiAllowedDirectory(const std::string& directory) {
+  neva_app_runtime::WebOSApiPolicy policy = webview_->GetWebOSApiPolicy();
+  if (policy.AddAllowedDirectory(directory))
+    webview_->SetWebOSApiPolicy(std::move(policy));
+}
+
+void WebViewBase::AddWebOSApiAllowedOrigin(const std::string& origin) {
+  neva_app_runtime::WebOSApiPolicy policy = webview_->GetWebOSApiPolicy();
+  if (policy.AddAllowedOrigin(url::Origin::Create(GURL(origin))))
+    webview_->SetWebOSApiPolicy(std::move(policy));
 }
 
 void WebViewBase::SetTrustLevel(const std::string& trust_level) {

@@ -40,6 +40,14 @@ interface AppRuntimeWebViewClient {
   SetWebViewInfo(string app_path,
                  string trust_level);
 
+  // Which documents of the frame get the injections; see
+  // neva_app_runtime::WebOSApiPolicy. Sent before the first
+  // AddInjectionToLoad, and again whenever the policy changes. A frame that
+  // never gets it loads the injections into every document, as all frames
+  // did before.
+  SetWebOSApiPolicy(bool restricted,
+                    array<string> allowed_directories,
+                    array<string> allowed_origins);
   AddInjectionToLoad(string injection, string arguments_json);
   UnloadInjections();
   SetUseVideoDecodeAccelerator(bool enable);

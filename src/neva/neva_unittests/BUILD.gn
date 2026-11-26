@@ -26,6 +26,8 @@ test("neva_unittests") {
     "../emulator:unittests"
   ]
 
+  deps += [ "../pal_service:unittests" ]
+
   if (is_webos) {
     deps += [ "../pal_service/webos:unittests" ]
   }

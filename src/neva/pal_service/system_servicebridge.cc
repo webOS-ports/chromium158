@@ -28,6 +28,9 @@ SystemServiceBridgeImpl::SystemServiceBridgeImpl()
   : weak_factory_(this) {
 }
 
+SystemServiceBridgeImpl::SystemServiceBridgeImpl(std::string appid)
+    : forced_appid_(std::move(appid)), weak_factory_(this) {}
+
 SystemServiceBridgeImpl::~SystemServiceBridgeImpl() {}
 
 void SystemServiceBridgeImpl::Connect(mojom::ConnectionParamsPtr params,
@@ -41,15 +44,32 @@ void SystemServiceBridgeImpl::Connect(mojom::ConnectionParamsPtr params,
     return;
   }
 
-  SystemServiceBridgeDelegate::CreationParams creation_params;
-  creation_params.name = params->name.value_or(std::string());
-  creation_params.appid = params->appid.value_or(std::string());
-  creation_params.suffix = params->suffix;
+  SystemServiceBridgeDelegate::CreationParams creation_params =
+      ResolveConnectionParams(*params, forced_appid_);
   delegate_ = PlatformFactory::Get()->CreateSystemServiceBridgeDelegate(
       std::move(creation_params),
       base::BindRepeating(&SystemServiceBridgeImpl::OnResponse,
                           weak_factory_.GetWeakPtr()));
   std::move(callback).Run(remote_client_.BindNewEndpointAndPassReceiver());
+}
+
+// static
+SystemServiceBridgeDelegate::CreationParams
+SystemServiceBridgeImpl::ResolveConnectionParams(
+    const mojom::ConnectionParams& params,
+    const std::optional<std::string>& forced_appid) {
+  SystemServiceBridgeDelegate::CreationParams creation_params;
+  if (forced_appid) {
+    // The service name follows from the application id (and the process),
+    // as it does for every bridge a page opens.
+    creation_params.appid = *forced_appid;
+    creation_params.suffix = -1;
+    return creation_params;
+  }
+  creation_params.name = params.name.value_or(std::string());
+  creation_params.appid = params.appid.value_or(std::string());
+  creation_params.suffix = params.suffix;
+  return creation_params;
 }
 
 void SystemServiceBridgeImpl::Call(const std::string& uri,

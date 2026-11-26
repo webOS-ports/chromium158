@@ -58,6 +58,7 @@
 #include "neva/app_runtime/browser/app_runtime_browser_switches.h"
 #include "neva/app_runtime/browser/app_runtime_webview_controller_impl.h"
 #include "neva/app_runtime/browser/app_runtime_webview_host_impl.h"
+#include "neva/app_runtime/browser/webos_api_access.h"
 #include "neva/app_runtime/browser/media/webrtc/media_capture_devices_dispatcher.h"
 #include "neva/app_runtime/public/app_runtime_event.h"
 #include "neva/app_runtime/public/webview_delegate.h"
@@ -303,6 +304,38 @@ void WebView::LoadExtension(const std::string& name) {
   TRACE_EVENT1("neva", "WebView::LoadExtension", "name", name);
 
   RequestInjectionLoading(name);
+}
+
+void WebView::SetWebOSApiPolicy(WebOSApiPolicy policy) {
+  if (policy == webos_api_policy_) {
+    return;
+  }
+  webos_api_policy_ = std::move(policy);
+  WebOSApiAccess::SetPolicy(web_contents_.get(), webos_api_policy_);
+  web_contents_->ForEachRenderFrameHost(
+      [this](content::RenderFrameHost* render_frame_host) {
+        if (render_frame_host->IsRenderFrameLive()) {
+          SendWebOSApiPolicy(render_frame_host);
+        }
+      });
+}
+
+void WebView::SendWebOSApiPolicy(content::RenderFrameHost* render_frame_host) {
+  if (!render_frame_host) {
+    return;
+  }
+  std::vector<std::string> directories;
+  for (const auto& directory : webos_api_policy_.allowed_directories()) {
+    directories.push_back(directory.value());
+  }
+  std::vector<std::string> origins;
+  for (const auto& origin : webos_api_policy_.allowed_origins()) {
+    origins.push_back(origin.Serialize());
+  }
+  mojo::AssociatedRemote<mojom::AppRuntimeWebViewClient> client;
+  render_frame_host->GetRemoteAssociatedInterfaces()->GetInterface(&client);
+  client->SetWebOSApiPolicy(webos_api_policy_.restricted(), directories,
+                            origins);
 }
 
 void WebView::ClearExtensions() {
@@ -1212,6 +1245,7 @@ void WebView::RequestInjectionLoading(const std::string& injection_name) {
   if (is_pwa_)
     return;
 #endif  // ENABLE_PWA_MANAGER_WEBAPI
+  SendWebOSApiPolicy(web_contents_->GetPrimaryMainFrame());
   injection_manager_->RequestLoadInjection(web_contents_->GetPrimaryMainFrame(),
                                            injection_name);
 }
@@ -1260,6 +1294,7 @@ void WebView::RenderFrameCreated(content::RenderFrameHost* render_frame_host) {
   TRACE_EVENT0("neva", "WebView::RenderFrameCreated");
 
   SetSkipFrame(enable_skip_frame_);
+  SendWebOSApiPolicy(render_frame_host);
   injection_manager_->RequestReloadInjections(render_frame_host);
 }
 

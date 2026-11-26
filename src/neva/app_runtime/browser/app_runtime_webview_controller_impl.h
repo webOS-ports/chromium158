@@ -50,6 +50,9 @@ class AppRuntimeWebViewControllerImpl
   ~AppRuntimeWebViewControllerImpl() override;
 
   void SetDelegate(WebViewControllerDelegate* delegate);
+  WebViewControllerDelegate* delegate() const {
+    return webview_controller_delegate_;
+  }
 
   // Sets if the web contents is allowed to suspend video playback
   // when in background or not.
@@ -65,6 +68,10 @@ class AppRuntimeWebViewControllerImpl
  private:
   friend class content::WebContentsUserData<AppRuntimeWebViewControllerImpl>;
   explicit AppRuntimeWebViewControllerImpl(content::WebContents* web_contents);
+
+  // Whether the document making the call now being dispatched gets the webOS
+  // APIs (WebOSApiAccess); logs `name` when it does not.
+  bool CurrentFrameIsAllowed(const std::string& name);
 
   content::RenderFrameHostReceiverSet<mojom::AppRuntimeWebViewController>
       receivers_;

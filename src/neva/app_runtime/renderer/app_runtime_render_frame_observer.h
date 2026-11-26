@@ -19,6 +19,7 @@
 
 #include "content/public/renderer/render_frame_observer.h"
 #include "mojo/public/cpp/bindings/associated_receiver.h"
+#include "neva/app_runtime/common/webos_api_policy.h"
 #include "neva/app_runtime/public/mojom/app_runtime_webview.mojom.h"
 #include "neva/app_runtime/renderer/app_runtime_injection_loader.h"
 #include "third_party/blink/public/platform/web_scoped_page_pauser.h"
@@ -50,6 +51,10 @@ class AppRuntimeRenderFrameObserver : public content::RenderFrameObserver,
   void SetWebViewInfo(const std::string& app_path,
                       const std::string& trust_level) override;
 
+  void SetWebOSApiPolicy(bool restricted,
+                         const std::vector<std::string>& allowed_directories,
+                         const std::vector<std::string>& allowed_origins)
+      override;
   void AddInjectionToLoad(const std::string& injection,
                           const std::string& arguments_json) override;
   void UnloadInjections() override;
@@ -61,6 +66,11 @@ class AppRuntimeRenderFrameObserver : public content::RenderFrameObserver,
  private:
   // Whether DOM activity is suspended or not.
   bool dom_suspended_ = false;
+  // Whether the document now in the frame gets the injections.
+  bool DocumentGetsInjections();
+
+  // Unrestricted until the browser says otherwise.
+  WebOSApiPolicy webos_api_policy_;
   InjectionLoader injection_loader_;
   std::unique_ptr<blink::WebScopedPagePauser> page_pauser_;
   mojo::AssociatedReceiver<mojom::AppRuntimeWebViewClient> receiver_{this};

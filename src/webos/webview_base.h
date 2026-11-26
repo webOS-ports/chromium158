@@ -133,6 +133,16 @@ class WEBOS_EXPORT WebViewBase
   void StopLoading();
   void LoadExtension(const std::string& name);
   void ClearExtensions();
+  // The extensions, and the webOS APIs behind them (the service bus as the
+  // application, webOSSystem's functions), are only for the application's
+  // own documents: file: URLs in its folder (the app path given to
+  // Initialize()), plus what is added here, such as the folder of the
+  // embedder's error page or the origin of a hosted application. Every other
+  // document in the view gets none: a sign-in provider's page, a remote page
+  // the application navigates to, a third-party iframe. A view with no app
+  // path keeps them for every document, as before.
+  void AddWebOSApiAllowedDirectory(const std::string& directory);
+  void AddWebOSApiAllowedOrigin(const std::string& origin);
   void ReplaceBaseURL(const std::string& new_url, const std::string& old_url);
   void EnableInspectablePage();
   void DisableInspectablePage();

@@ -21,6 +21,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <tuple>
 
 #include "base/functional/bind.h"
 #include "base/json/json_reader.h"
@@ -34,7 +35,7 @@
 #include "neva/injection/renderer/grit/injection_resources.h"
 #include "neva/injection/renderer/webosservicebridge/webosservicebridge_properties.h"
 #include "neva/pal_service/public/mojom/constants.mojom.h"
-#include "third_party/blink/public/common/thread_safe_browser_interface_broker_proxy.h"
+#include "third_party/blink/public/platform/browser_interface_broker_proxy.h"
 #include "third_party/blink/public/platform/platform.h"
 #include "third_party/blink/public/web/blink.h"
 #include "third_party/blink/public/web/web_local_frame.h"
@@ -79,11 +80,23 @@ std::set<WebOSServiceBridgeInjection*>
     WebOSServiceBridgeInjection::waiting_responses_;
 bool WebOSServiceBridgeInjection::sent_did_run_on_close_callback_ = false;
 
-WebOSServiceBridgeInjection::WebOSServiceBridgeInjection(std::string appid)
+WebOSServiceBridgeInjection::WebOSServiceBridgeInjection(
+    std::string appid,
+    blink::WebLocalFrame* frame)
     : identifier_(std::move(appid))
     , client_receiver_(this) {
+  if (!frame) {
+    // Calls then go nowhere, as they do when the browser refuses the bridge.
+    std::ignore = remote_system_bridge_.BindNewPipeAndPassReceiver();
+    return;
+  }
+  // From the frame, not the process: the browser serves the provider per
+  // document, and decides there whether this document gets a bridge and which
+  // application it calls the bus as (neva_app_runtime::
+  // WebOSServiceBridgeProvider). `identifier_` below is what the page asked
+  // for; the browser no longer takes it from here.
   mojo::Remote<pal::mojom::SystemServiceBridgeProvider> provider;
-  blink::Platform::Current()->GetBrowserInterfaceBroker()->GetInterface(
+  frame->GetBrowserInterfaceBroker().GetInterface(
       provider.BindNewPipeAndPassReceiver());
 
   provider->GetSystemServiceBridge(
@@ -400,7 +413,8 @@ void WebOSServiceBridgeInjection::WebOSServiceBridgeConstructorCallback(
       gin::CreateHandle(
           isolate,
           cppgc::MakeGarbageCollected<injections::WebOSServiceBridgeInjection>(
-isolate->GetCppHeap()->GetAllocationHandle(), std::move(appid)));
+isolate->GetCppHeap()->GetAllocationHandle(), std::move(appid),
+              blink::WebLocalFrame::FrameForCurrentContext()));
   if (!wrapper.IsEmpty())
     args->Return(wrapper.ToV8());
 }

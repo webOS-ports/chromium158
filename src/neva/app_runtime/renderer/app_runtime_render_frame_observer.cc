@@ -30,7 +30,9 @@
 #include "third_party/blink/public/common/associated_interfaces/associated_interface_registry.h"
 #include "third_party/blink/public/common/web_preferences/web_preferences.h"
 #include "third_party/blink/public/platform/web_scoped_page_pauser.h"
+#include "third_party/blink/public/platform/web_security_origin.h"
 #include "third_party/blink/public/platform/web_string.h"
+#include "third_party/blink/public/platform/web_url.h"
 #include "third_party/blink/public/web/web_document.h"
 #include "third_party/blink/public/web/web_frame.h"
 #include "third_party/blink/public/web/web_frame_load_type.h"
@@ -42,6 +44,8 @@
 #include "third_party/blink/renderer/bindings/core/v8/serialization/serialized_script_value.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "ui/base/resource/resource_bundle.h"
+#include "url/gurl.h"
+#include "url/origin.h"
 
 namespace neva_app_runtime {
 
@@ -167,7 +171,15 @@ void AppRuntimeRenderFrameObserver::SetDisallowScrollbarsInMainFrame(
 }
 
 void AppRuntimeRenderFrameObserver::DidClearWindowObject() {
-  injection_loader_.Load(render_frame()->GetWebFrame());
+  // A new document, or a new script context for one: decide by what it shows
+  // (WebOSApiPolicy), not by the frame. A sign-in window, an iframe or a page
+  // the application navigates to on another site would otherwise get
+  // webOSSystem and the service bridges and use them as the application.
+  if (DocumentGetsInjections()) {
+    injection_loader_.Load(render_frame()->GetWebFrame());
+  } else {
+    injection_loader_.Skip();
+  }
 
   if (!render_frame()->IsMainFrame())
     return;
@@ -192,6 +204,43 @@ void AppRuntimeRenderFrameObserver::ReplaceBaseURL(const std::string& new_url) {
   if (!navi_control)
     return;
   navi_control->UpdateForSameDocumentNavigation(new_url);
+}
+
+bool AppRuntimeRenderFrameObserver::DocumentGetsInjections() {
+  return webos_api_policy_.AllowsFrame(
+      render_frame()->GetWebFrame(),
+      [](blink::WebLocalFrame* frame) {
+        return WebOSApiPolicy::Document{
+            GURL(frame->GetDocument().Url()),
+            url::Origin(frame->GetSecurityOrigin())};
+      },
+      [](blink::WebLocalFrame* frame) -> blink::WebLocalFrame* {
+        // A frame in another renderer is not reachable from here; the
+        // document is then refused, which is what the browser decides too
+        // when it cannot tell (WebOSApiAccess).
+        blink::WebFrame* creator =
+            frame->Parent() ? frame->Parent() : frame->Opener();
+        return creator && creator->IsWebLocalFrame()
+                   ? creator->ToWebLocalFrame()
+                   : nullptr;
+      });
+}
+
+void AppRuntimeRenderFrameObserver::SetWebOSApiPolicy(
+    bool restricted,
+    const std::vector<std::string>& allowed_directories,
+    const std::vector<std::string>& allowed_origins) {
+  WebOSApiPolicy policy;
+  if (restricted) {
+    policy.Restrict();
+  }
+  for (const auto& directory : allowed_directories) {
+    policy.AddAllowedDirectory(directory);
+  }
+  for (const auto& origin : allowed_origins) {
+    policy.AddAllowedOrigin(url::Origin::Create(GURL(origin)));
+  }
+  webos_api_policy_ = std::move(policy);
 }
 
 void AppRuntimeRenderFrameObserver::AddInjectionToLoad(
